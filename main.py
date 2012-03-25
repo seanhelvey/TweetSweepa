@@ -21,6 +21,7 @@ from google.appengine.ext import db
 from google.appengine.ext.webapp import template
 from google.appengine.api import users
 from google.appengine.ext.db import djangoforms
+import collections
 import urllib2
 import tweetDB
 import cgitb
@@ -94,12 +95,18 @@ pp=5&include_entities=true&result_type=mixed'
 
         html = '<html><head><title>Results</title></head><body>'
 
+        wordList = collections.defaultdict(int)
         for clean in cleanTweets:
             subStrEnd = clean.find('","')
             peice = clean[:subStrEnd]
 
             html = html + peice + '<br>'
-            
+
+            words = peice.split(" ")
+            for word in words:
+                wordList[word] += 1
+                html = html + word + "<br>"
+
         html = html + '</body></html>'
         self.response.out.write(html)
 

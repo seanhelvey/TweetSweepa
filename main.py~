@@ -39,6 +39,8 @@ class FrontPage(webapp.RequestHandler):
             result.delete()
 
         html = '<html><head><title>TweetSweepa</title></head><body>'
+        html = html + "<h3>Welcome to the TweetSweepa!<br></h3>"
+        html = html + "<h4>Search for the following words:<br></h4>"
         html = html + '<div id="wrapper">'
         html = html + '<form method="POST" action="/">'
         html = html + str(Hack(auto_id=False))
@@ -66,7 +68,7 @@ class ResultsPage(webapp.RequestHandler):
         results = a.fetch(10)
         for result in results:
             var1 = result.textBox1
-            var1 = result.textBox2
+            var2 = result.textBox2
 
         url = 'http://search.twitter.com/search.json?q=' + var1 + '%20' + var2 + '&r\
 pp=5&include_entities=true&result_type=mixed'
