@@ -159,6 +159,19 @@ def functionFive(priorTag, currentTag, nextTag):
         return "pB=0 pI=1 I-NP"
     else:
         return "pB=0 pI=0 O"
+
+
+#~~~~~~~~~NEWNEW~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def search(string,letter):
+    n = 0
+    for i in range (len(string)):
+        if string[i]==letter:
+            n=n+1
+            return True
+
+#~~~~~~~~~NEWNEW~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
         
 class ResultsPage(webapp.RequestHandler):    
     def get(self):
@@ -327,6 +340,9 @@ pp=5&include_entities=true&result_type=mixed'
 
 #        html = '<html><head><title>Results</title></head><body>'
 
+        atSignList = collections.defaultdict(int)
+        hashTagList = collections.defaultdict(int)
+
         wordList = collections.defaultdict(int)
         for clean in cleanTweets:
             subStrEnd = clean.find('","')
@@ -339,6 +355,20 @@ pp=5&include_entities=true&result_type=mixed'
             #----------MODS--------------------------------
             sublist = []
             for word in words:
+
+                #~~~~~~~~~NEWNEW~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                
+                #search for @
+                foundAtSign = search(word,"@")
+                if foundAtSign == True:
+                    atSignList[word] += 1
+
+                #search for #
+                foundHashTag = search(word,"#")
+                if foundHashTag == True:
+                    hashTagList[word] += 1
+
+                #~~~~~~~~~NEWNEW~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
                 wordOne = ""
                 wordTwo = ""
@@ -425,7 +455,7 @@ pp=5&include_entities=true&result_type=mixed'
 
 
                     else:
-                        self.response.out.write("oov: " + theWord + "<br>")
+                        #self.response.out.write("oov: " + theWord + "<br>")
                         if len(tags) == 0:
                             gram = bigram()
                             gram.currentWord = theWord
@@ -470,7 +500,7 @@ pp=5&include_entities=true&result_type=mixed'
 
         #outfile = open("out.txt","w")
 
-        htmlc = '<html><head><title>Results</title></head><body>'
+        htmlc = '<html><head><title>Results</title><link type="text/css" rel="stylesheet" href="/static/style.css" /></head><body>'
 
         #Write output
         for sents in sentsList:
@@ -479,24 +509,45 @@ pp=5&include_entities=true&result_type=mixed'
             for sent in sents.list:
                 if sent.score == sents.sentsMax and num == 0:
 
-                    self.response.out.write("<br>")
+                    #self.response.out.write("<br>")
 
                     #outfile.write("\n")
                     priorGramTag = ""
+
+                    htmlc = htmlc + '<div id="left">'
                     for gram in sent.bigrams:
                         #x = functionFive(priorGramTag, gram.currentTag, gram.nextTag)
-                        
+
                         htmlc = htmlc + str(gram.currentWord) + " " + str(gram.currentTag) + "<br>"
-                        
+
                         #NEW***
                         #htmlc = htmlc + str(gram.currentWord)+ " " +str(x)+ "<br>"
                         #outfile.write(str(gram.currentWord)+" "+ str(x) + "\n")
                         
                         priorGramTag = gram.currentTag
                     num += 1
+                    htmlc = htmlc + '<br></div>'
 
-                    htmlc = htmlc + "<br><br>"
+                    #htmlc = htmlc + "<br><br>"
                     
+        
+        htmlc = htmlc + '<div id="middleleft">'
+        for x in atSignList:
+            htmlc = htmlc + x + "<br>"
+        htmlc = htmlc + '</div>'
+
+        htmlc = htmlc + '<div id="middleright">'
+        for x in atSignList:
+            htmlc = htmlc + x + "<br>"
+        htmlc = htmlc + '</div>'
+
+        #htmlc = htmlc + "\n"
+
+        htmlc = htmlc + '<div id="right">'
+        for x in hashTagList:
+            htmlc = htmlc + x + "<br>"
+        htmlc = htmlc + '</div>'
+
         htmlc = htmlc + "</body></html>"
 
         self.response.out.write(htmlc)
