@@ -120,7 +120,7 @@ class FrontPage(webapp.RequestHandler):
         for result in results:
             result.delete()
 
-        html = '<html><head><title>TweetSweepa</title><link type="text/css" rel="stylesheet" href="/static/style.css" /></head><body>'
+        html = '<html><head><title>TweetSweepa</title></head><body>'
         html = html + "<h3>Welcome to the TweetSweepa!<br></h3>"
         html = html + "<h4>Search for the following words:<br></h4>"
         html = html + '<div id="wrapper">'
@@ -513,11 +513,12 @@ pp=5&include_entities=true&result_type=mixed'
 
                     #outfile.write("\n")
                     priorGramTag = ""
+
+                    htmlc = htmlc + '<div id="left">'
                     for gram in sent.bigrams:
                         #x = functionFive(priorGramTag, gram.currentTag, gram.nextTag)
-                        htmlc = htmlc + '<div id="middlebox">'
+
                         htmlc = htmlc + str(gram.currentWord) + " " + str(gram.currentTag) + "<br>"
-                        htmlc = htmlc + '</div>'
 
                         #NEW***
                         #htmlc = htmlc + str(gram.currentWord)+ " " +str(x)+ "<br>"
@@ -525,19 +526,26 @@ pp=5&include_entities=true&result_type=mixed'
                         
                         priorGramTag = gram.currentTag
                     num += 1
+                    htmlc = htmlc + '<br></div>'
 
                     #htmlc = htmlc + "<br><br>"
                     
-        htmlc = htmlc + '<div id="leftbox">'
+        
+        htmlc = htmlc + '<div id="middleleft">'
         for x in atSignList:
-            htmlc = htmlc + x
+            htmlc = htmlc + x + "<br>"
+        htmlc = htmlc + '</div>'
+
+        htmlc = htmlc + '<div id="middleright">'
+        for x in atSignList:
+            htmlc = htmlc + x + "<br>"
         htmlc = htmlc + '</div>'
 
         #htmlc = htmlc + "\n"
 
-        htmlc = htmlc + '<div id="rightbox">'
+        htmlc = htmlc + '<div id="right">'
         for x in hashTagList:
-            htmlc = htmlc + x
+            htmlc = htmlc + x + "<br>"
         htmlc = htmlc + '</div>'
 
         htmlc = htmlc + "</body></html>"

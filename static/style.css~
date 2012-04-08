@@ -1,19 +1,54 @@
-#leftbox {
-position: absolute;
-left: 10px;
-width: 180px;
+p,h1, h3, pre {
+padding: 5px 15px;
+margin: 0px;
 }
 
-#middlebox { 
-margin: 0 34% 0 170px;
-border-left: 2px solid #000;
-border-right: 2px solid #000;
-padding: 0 10px 10px;
-background-color: #6b9;
+#right,#middleright,#middle,#middleleft,#left{
+border: 1px solid #564b47;
+padding:0px;
+margin:0px;
+overflow: hidden; 
+text-overflow: ellipsis;
+overflow-x:hidden;
+overflow-y:hidden;
 }
 
-#rightbox {
+#left {
 position: absolute;
-right: 2%;
-width: 30%;
+left: 2%;
+width: 18%;
+top: 106px;
+background-color: #CCCCFF;
+}
+
+#middleleft {
+position: absolute;
+left: 21%;
+width: 18%;
+top: 106px;
+background-color: #00FFFF;
+}
+
+#middle {
+position: absolute;
+left: 40%;
+width: 18%;
+top: 106px;
+background-color: #00FFCC;
+}
+
+#middleright {
+position: absolute;
+left: 59%;
+width: 18%;
+top: 106px;
+background-color: #FFCCFF;
+}
+
+#right {
+position: absolute;
+left: 78%;
+width: 18%;
+top: 106px;
+background-color: #FFFF99;
 }
