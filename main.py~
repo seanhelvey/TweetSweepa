@@ -135,7 +135,6 @@ class FrontPage(webapp.RequestHandler):
     def post(self):
         page = tweetDB.Hack()
         page.textBox1 = self.request.get('textBox1')
-        page.textBox2 = self.request.get('textBox2')
         page.put()
 
         html = '<html><head><title>TweetSweepa</title></head><body>'
@@ -314,10 +313,17 @@ class ResultsPage(webapp.RequestHandler):
         results = a.fetch(10)
         for result in results:
             var1 = result.textBox1
-            var2 = result.textBox2
+            
+            splitted = var1.split(" ")
+            z = len(var1.split(" "))
+            if z == 1:
+                url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '&include_entities=true&result_type=mixed'
 
-        url = 'http://search.twitter.com/search.json?q=' + var1 + '%20' + var2 + '&r\
-pp=5&include_entities=true&result_type=mixed'
+            elif z == 2:
+                url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '%20' + splitted[1] + '&include_entities=true&result_type=mixed'                 
+
+            else:
+                url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '%20' + splitted[1] + '%20' + splitted[2] + '&include_entities=true&result_type=mixed' 
 
         req = urllib2.urlopen(url)
         text = str(req.read())
@@ -342,6 +348,7 @@ pp=5&include_entities=true&result_type=mixed'
 
         atSignList = collections.defaultdict(int)
         hashTagList = collections.defaultdict(int)
+        httpLinkList = collections.defaultdict(int)
 
         wordList = collections.defaultdict(int)
         for clean in cleanTweets:
@@ -367,6 +374,10 @@ pp=5&include_entities=true&result_type=mixed'
                 foundHashTag = search(word,"#")
                 if foundHashTag == True:
                     hashTagList[word] += 1
+
+                #search for #
+                if "http" in word:
+                    httpLinkList[word] += 1
 
                 #~~~~~~~~~NEWNEW~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -395,6 +406,7 @@ pp=5&include_entities=true&result_type=mixed'
 #                html = html + word + "<br>"
 
             listola.append(sublist)
+
             #----------------------------------------------
 
             #html = html + "<br>"
@@ -417,6 +429,7 @@ pp=5&include_entities=true&result_type=mixed'
         newSents = 1
         sentsListNum = 0
         theLastTag = ''
+        oovList = collections.defaultdict(int)
 
 #        self.response.out.write(listola)        
         
@@ -456,6 +469,10 @@ pp=5&include_entities=true&result_type=mixed'
 
                     else:
                         #self.response.out.write("oov: " + theWord + "<br>")
+
+                        if theWord != "":
+                            oovList[theWord] += 1
+
                         if len(tags) == 0:
                             gram = bigram()
                             gram.currentWord = theWord
@@ -502,6 +519,9 @@ pp=5&include_entities=true&result_type=mixed'
 
         htmlc = '<html><head><title>Results</title><link type="text/css" rel="stylesheet" href="/static/style.css" /></head><body>'
 
+        htmlc = htmlc + '<div id="left">'
+        htmlc = htmlc + "<h4>POS Tags</h4><br>"
+
         #Write output
         for sents in sentsList:
             num = 0
@@ -514,38 +534,54 @@ pp=5&include_entities=true&result_type=mixed'
                     #outfile.write("\n")
                     priorGramTag = ""
 
-                    htmlc = htmlc + '<div id="left">'
                     for gram in sent.bigrams:
                         #x = functionFive(priorGramTag, gram.currentTag, gram.nextTag)
-
+                        
                         htmlc = htmlc + str(gram.currentWord) + " " + str(gram.currentTag) + "<br>"
-
+                        
                         #NEW***
                         #htmlc = htmlc + str(gram.currentWord)+ " " +str(x)+ "<br>"
                         #outfile.write(str(gram.currentWord)+" "+ str(x) + "\n")
                         
                         priorGramTag = gram.currentTag
                     num += 1
-                    htmlc = htmlc + '<br></div>'
 
-                    #htmlc = htmlc + "<br><br>"
-                    
-        
+                    htmlc = htmlc + "<br>"
+
+        htmlc = htmlc + "</div>"
+
         htmlc = htmlc + '<div id="middleleft">'
-        for x in atSignList:
+        htmlc = htmlc + "<h4>Out Of Vocab</h4><br>"
+        
+        for x in oovList:
             htmlc = htmlc + x + "<br>"
         htmlc = htmlc + '</div>'
 
-        htmlc = htmlc + '<div id="middleright">'
+        htmlc = htmlc + '<div id="middle">'
+        htmlc = htmlc + "<h4>At Signs @</h4><br>"
+        
         for x in atSignList:
             htmlc = htmlc + x + "<br>"
         htmlc = htmlc + '</div>'
 
         #htmlc = htmlc + "\n"
 
-        htmlc = htmlc + '<div id="right">'
+        htmlc = htmlc + '<div id="middleright">'
+        htmlc = htmlc + "<h4>Hash Tags #</h4><br>"
+        
         for x in hashTagList:
             htmlc = htmlc + x + "<br>"
+        htmlc = htmlc + '</div>'
+
+        htmlc = htmlc + '<div id="right">'
+        htmlc = htmlc + "<h4>URLs</h4><br>"
+        
+        for x in httpLinkList:
+            htmlc = htmlc + x + "<br>"
+        htmlc = htmlc + '</div>'
+
+        htmlc = htmlc + '<div id="stats">'
+        htmlc = htmlc + "stats"
         htmlc = htmlc + '</div>'
 
         htmlc = htmlc + "</body></html>"

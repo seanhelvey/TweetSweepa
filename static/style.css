@@ -3,7 +3,7 @@ padding: 5px 15px;
 margin: 0px;
 }
 
-#right,#middleright,#middle,#middleleft,#left,#stats{
+#right,#middleright,#middle,#left,#stats{
 border: 1px solid #564b47;
 padding:0px;
 margin:0px;
@@ -25,18 +25,12 @@ background-color: #FFCC99;
 #left {
 position: absolute;
 left: 2%;
-width: 18%;
+width: 36%;
 top: 56px;
 background-color: #CCCCFF;
 }
 
-#middleleft {
-position: absolute;
-left: 21%;
-width: 18%;
-top: 56px;
-background-color: #00FFFF;
-}
+.highlight {color: #C11B17}
 
 #middle {
 position: absolute;

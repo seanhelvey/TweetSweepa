@@ -534,11 +534,18 @@ class ResultsPage(webapp.RequestHandler):
                     #outfile.write("\n")
                     priorGramTag = ""
 
+
+                    htmlc = htmlc + "<p>"
+
                     for gram in sent.bigrams:
                         #x = functionFive(priorGramTag, gram.currentTag, gram.nextTag)
-                        
-                        htmlc = htmlc + str(gram.currentWord) + " " + str(gram.currentTag) + "<br>"
-                        
+                        if gram.currentWord in oovList:
+                            htmlc = htmlc + '<span class="highlight">'
+                            htmlc = htmlc + str(gram.currentWord) + " [" + str(gram.currentTag) + "] "
+                            htmlc = htmlc + '</span>'
+                        else:
+                            htmlc = htmlc + str(gram.currentWord) + " [" + str(gram.currentTag) + "] "
+
                         #NEW***
                         #htmlc = htmlc + str(gram.currentWord)+ " " +str(x)+ "<br>"
                         #outfile.write(str(gram.currentWord)+" "+ str(x) + "\n")
@@ -546,16 +553,16 @@ class ResultsPage(webapp.RequestHandler):
                         priorGramTag = gram.currentTag
                     num += 1
 
-                    htmlc = htmlc + "<br>"
+                    htmlc = htmlc + "</p><br><br>"
 
         htmlc = htmlc + "</div>"
 
-        htmlc = htmlc + '<div id="middleleft">'
-        htmlc = htmlc + "<h4>Out Of Vocab</h4><br>"
+#        htmlc = htmlc + '<div id="middleleft">'
+#        htmlc = htmlc + "<h4>Out Of Vocab</h4><br>"
         
-        for x in oovList:
-            htmlc = htmlc + x + "<br>"
-        htmlc = htmlc + '</div>'
+#        for x in oovList:
+#            htmlc = htmlc + x + "<br>"
+#        htmlc = htmlc + '</div>'
 
         htmlc = htmlc + '<div id="middle">'
         htmlc = htmlc + "<h4>At Signs @</h4><br>"
@@ -581,7 +588,7 @@ class ResultsPage(webapp.RequestHandler):
         htmlc = htmlc + '</div>'
 
         htmlc = htmlc + '<div id="stats">'
-        htmlc = htmlc + "stats"
+        htmlc = htmlc + "<h4>Stats</h4>"
         htmlc = htmlc + '</div>'
 
         htmlc = htmlc + "</body></html>"
