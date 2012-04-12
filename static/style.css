@@ -3,7 +3,7 @@ padding: 5px 15px;
 margin: 0px;
 }
 
-#right,#middleright,#middle,#left,#stats{
+#right,#middleright,#middle,#left,#oov, #lexicon{
 border: 1px solid #564b47;
 padding:0px;
 margin:0px;
@@ -13,45 +13,51 @@ overflow-x:hidden;
 overflow-y:hidden;
 }
 
-#stats {
-position: absolute;
-left: 40%;
-width: 57%;
-top: 56px;
-height: 50%;
-background-color: #FFCC99;
-}
-
 #left {
 position: absolute;
 left: 2%;
-width: 36%;
+width: 44%;
 top: 56px;
-background-color: #CCCCFF;
+background-color: #E8E8E8;
 }
 
 .highlight {color: #C11B17}
+.sentence {color: #0066CC;background-color: #FFFFFF;}
+
+#oov {
+position: absolute;
+left: 46%;
+width: 44%;
+top: 56px;
+}
+
+#lexicon {
+position: absolute;
+left: 48%;
+width: 44%;
+top: 56px;
+}
 
 #middle {
 position: absolute;
-left: 40%;
+left: 70%;
 width: 18%;
-top: 406px;
+top: 56px;
 background-color: #FFFF99;
 }
 
 #middleright {
 position: absolute;
-left: 59%;
+left: 70%;
 width: 18%;
-top: 406px;
+top: 156px;
 background-color: #FFCCFF;
 }
 
 #right {
 position: absolute;
-left: 78%;
+left: 70%;
 width: 18%;
-top: 406px;
+top: 256px;
 background-color: #00FFCC;
 }

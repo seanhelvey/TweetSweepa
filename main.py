@@ -112,6 +112,17 @@ class Hack(djangoforms.ModelForm):
     class Meta:
         model = tweetDB.Hack
 
+class Fix(djangoforms.ModelForm):
+    class Meta:
+        model = tweetDB.Fix
+
+def search(string,letter):
+    n = 0
+    for i in range (len(string)):
+        if string[i]==letter:
+            n=n+1
+            return True
+
 class FrontPage(webapp.RequestHandler):
     def get(self):
 
@@ -137,44 +148,9 @@ class FrontPage(webapp.RequestHandler):
         page.textBox1 = self.request.get('textBox1')
         page.put()
 
-        html = '<html><head><title>TweetSweepa</title></head><body>'
-        html = html + '<a href="/results">results</a>'
-        html = html + '</body></html>'
-        self.response.out.write(html)
+        htmlc = '<html><head><title>TweetSweepa</title></head><body>'
 
-def functionFive(priorTag, currentTag, nextTag):
-    if (((priorTag == "") or (priorTag != "NN" and priorTag != "NNP" and priorTag != "NNS" and priorTag != "DT" and priorTag != "JJ" and priorTag != "PRP")) and (currentTag == "NN" or currentTag == "NNP" or currentTag == "NNS" or currentTag == "JJ" or currentTag =="DT" or currentTag == "PRP")):
-
-        if (currentTag == "DT" or currentTag == "JJ"):
-            if (nextTag == "JJ" or nextTag == "NN" or nextTag == "NNP" or nextTag == "NNS"):
-
-                return "pB=1 pI=0 B-NP"
-            else:
-                return "pB=0 pI=0 O"
-        else:
-            return "pB=1 pI=0 B-NP"
-        
-    elif (priorTag == "NN" or priorTag == "NNP" or priorTag == "NNS" or priorTag == "JJ" or priorTag == "DT" or priorTag == "PRP") and (currentTag == "NN" or currentTag == "NNP" or currentTag == "NNS" or currentTag == "JJ" or currentTag =="DT" or currentTag =="PRP"):
-        return "pB=0 pI=1 I-NP"
-    else:
-        return "pB=0 pI=0 O"
-
-
-#~~~~~~~~~NEWNEW~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-def search(string,letter):
-    n = 0
-    for i in range (len(string)):
-        if string[i]==letter:
-            n=n+1
-            return True
-
-#~~~~~~~~~NEWNEW~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        
-class ResultsPage(webapp.RequestHandler):    
-    def get(self):
-
+        #DO MORE HERE!!!
         #-BEG-NLP----------------------------------------------------------------------------
 
         #open trainingFile for read
@@ -520,7 +496,9 @@ class ResultsPage(webapp.RequestHandler):
         htmlc = '<html><head><title>Results</title><link type="text/css" rel="stylesheet" href="/static/style.css" /></head><body>'
 
         htmlc = htmlc + '<div id="left">'
-        htmlc = htmlc + "<h4>POS Tags</h4><br>"
+        htmlc = htmlc + "<p>POS Tags - Out Of Vocabulary (OOV) in <span class='highlight'>red<span></p><br>"
+
+        htmlc = htmlc + '<table border="1">'
 
         #Write output
         for sents in sentsList:
@@ -528,33 +506,41 @@ class ResultsPage(webapp.RequestHandler):
         
             for sent in sents.list:
                 if sent.score == sents.sentsMax and num == 0:
+                    htmlc = htmlc + "<tr><td><span class='sentence'>Sentence</td></tr>"
 
                     #self.response.out.write("<br>")
 
                     #outfile.write("\n")
                     priorGramTag = ""
 
-
-                    htmlc = htmlc + "<p>"
+#                    htmlc = htmlc + "<p>"
 
                     for gram in sent.bigrams:
-                        #x = functionFive(priorGramTag, gram.currentTag, gram.nextTag)
+                        htmlc = htmlc + "<tr>"
                         if gram.currentWord in oovList:
-                            htmlc = htmlc + '<span class="highlight">'
-                            htmlc = htmlc + str(gram.currentWord) + " [" + str(gram.currentTag) + "] "
-                            htmlc = htmlc + '</span>'
-                        else:
-                            htmlc = htmlc + str(gram.currentWord) + " [" + str(gram.currentTag) + "] "
 
-                        #NEW***
-                        #htmlc = htmlc + str(gram.currentWord)+ " " +str(x)+ "<br>"
-                        #outfile.write(str(gram.currentWord)+" "+ str(x) + "\n")
-                        
+                            htmlc = htmlc + "<td>"
+                            htmlc = htmlc + '<span class="highlight">'
+                            htmlc = htmlc + str(gram.currentWord) + " [" + str(gram.currentTag) + "]"
+                            htmlc = htmlc + '</span>'
+                            htmlc = htmlc + "</td>"
+
+                            htmlc = htmlc + "<td>"
+                            htmlc = htmlc + "add tag"
+                            htmlc = htmlc + "</td>"
+
+                        else:
+                            htmlc = htmlc + "<td>"
+                            htmlc = htmlc + str(gram.currentWord) + " [" + str(gram.currentTag) + "]"
+                            htmlc = htmlc + "</td>"
+
                         priorGramTag = gram.currentTag
+                        htmlc = htmlc + "</tr>"
                     num += 1
 
-                    htmlc = htmlc + "</p><br><br>"
+#                    htmlc = htmlc + "</p>"
 
+        htmlc = htmlc + "</table>"
         htmlc = htmlc + "</div>"
 
 #        htmlc = htmlc + '<div id="middleleft">'
@@ -564,36 +550,52 @@ class ResultsPage(webapp.RequestHandler):
 #            htmlc = htmlc + x + "<br>"
 #        htmlc = htmlc + '</div>'
 
-        htmlc = htmlc + '<div id="middle">'
-        htmlc = htmlc + "<h4>At Signs @</h4><br>"
+#        htmlc = htmlc + '<div id="middle">'
+#        htmlc = htmlc + "<p>@ At Signs</p><br><p>"
         
-        for x in atSignList:
-            htmlc = htmlc + x + "<br>"
-        htmlc = htmlc + '</div>'
+#        for x in atSignList:
+#            htmlc = htmlc + x + "<br>"
+#        htmlc = htmlc + '</p></div>'
 
         #htmlc = htmlc + "\n"
 
-        htmlc = htmlc + '<div id="middleright">'
-        htmlc = htmlc + "<h4>Hash Tags #</h4><br>"
+#        htmlc = htmlc + '<div id="middleright">'
+#        htmlc = htmlc + "<p># Hash Tags</p><br><p>"
         
-        for x in hashTagList:
-            htmlc = htmlc + x + "<br>"
-        htmlc = htmlc + '</div>'
+#        for x in hashTagList:
+#            htmlc = htmlc + x + "<br>"
+#        htmlc = htmlc + '</p></div>'
 
-        htmlc = htmlc + '<div id="right">'
-        htmlc = htmlc + "<h4>URLs</h4><br>"
+#        htmlc = htmlc + '<div id="right">'
+#        htmlc = htmlc + "<p>URLs</p><br><p>"
         
-        for x in httpLinkList:
-            htmlc = htmlc + x + "<br>"
-        htmlc = htmlc + '</div>'
+#        for x in httpLinkList:
+#            htmlc = htmlc + x + "<br>"
+#        htmlc = htmlc + '</p></div>'
 
-        htmlc = htmlc + '<div id="stats">'
-        htmlc = htmlc + "<h4>Stats</h4>"
-        htmlc = htmlc + '</div>'
+        htmlc = htmlc + '<div id="lexicon">'
+        htmlc = htmlc + "<p>Words Added To Your Lexicon</p><br><p>"
 
-        htmlc = htmlc + "</body></html>"
+        htmlc = htmlc + "Hello" + "<br>"
 
+        htmlc = htmlc + '</p></div>'
+
+        htmlc = htmlc + '<a href="/results">Add To Lexicon</a>'
+
+#        htmlc = htmlc + '<div id="oov">'
+#        htmlc = htmlc + "<p>Active Learning</p><br><p>"
+        htmlc = htmlc + '</body></html>'
         self.response.out.write(htmlc)
+
+#~~~~~~~~~NEWNEW~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        
+class ResultsPage(webapp.RequestHandler):    
+    def get(self):
+
+        htmlr = "hi"
+
+        self.response.out.write(htmlr)
 
         #-END-NLP--------------------------------------------------------------------
 
