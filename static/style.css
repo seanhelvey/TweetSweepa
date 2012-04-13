@@ -16,7 +16,7 @@ overflow-y:hidden;
 #left {
 position: absolute;
 left: 2%;
-width: 44%;
+width: 64%;
 top: 56px;
 background-color: #E8E8E8;
 }
@@ -33,8 +33,8 @@ top: 56px;
 
 #lexicon {
 position: absolute;
-left: 48%;
-width: 44%;
+left: 68%;
+width: 24%;
 top: 56px;
 }
 
