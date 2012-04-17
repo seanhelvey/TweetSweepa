@@ -125,22 +125,27 @@ def search(string,letter):
             n=n+1
             return True
 
+globalVar = 0
+
 class FrontPage(webapp.RequestHandler):
     def get(self):
-
+        
         q = db.GqlQuery("SELECT * FROM Hack")
         results = q.fetch(10)
         for result in results:
             result.delete()
 
-        html = '<html><head><title>TweetSweepa</title></head><body>'
-        html = html + "<h3>Welcome to the TweetSweepa! (CURRENTLY BEING MODIFIED)<br></h3>"
-        html = html + "<h4>Search for the following words:<br></h4>"
+        html = '<html><head><title>TweetSweepa</title><link type="text/css" rel="stylesheet" href="/static/style.css" /></head><body>'
+        html = html + "<p>Welcome to the TweetSweepa! (CURRENTLY BEING MODIFIED)</p><br>"
+        html = html + "<p>Search for the following words:</p><br>"
         html = html + '<div id="wrapper">'
         html = html + '<form method="POST" action="/">'
-        html = html + str(Hack(auto_id=False))
+        xx = str(Hack(auto_id=False))
+        yy = xx.find(":")
+        stringCheese = xx[yy+1:] 
+        html = html + '<p>' + stringCheese
         html = html + '<input type="submit" name="sub_title" value="Submit">'        
-        html = html + '</form>'
+        html = html + '</p></form>'
         html = html + '</div>'
         html = html + '</body></html>'
         self.response.out.write(html)
@@ -150,240 +155,260 @@ class FrontPage(webapp.RequestHandler):
         page.textBox1 = self.request.get('textBox1')
         page.put()
 
-        htmlc = '<html><head><title>TweetSweepa</title></head><body>'
+        globalVar = 0
 
-        #DO MORE HERE!!!
+        #CONTROL GOES HERE 
+        #first post / second post
+        if globalVar == 0:
+            #htmlc = '<html><head><title>TweetSweepa</title><link type="text/css" rel="stylesheet" href="/static/style.css" /></head><body>'
+
         #-BEG-NLP----------------------------------------------------------------------------
 
-        #open trainingFile for read
-        file=open(trainingFile,'r')
+            #open trainingFile for read
+            file=open(trainingFile,'r')
 
         #list of bigrams for aggregating data
-        theBigrams = []
+            theBigrams = []
 
         #dictionairies for counting
-        wordDic = collections.defaultdict(int)
-        tagDic = collections.defaultdict(int)
-        transDic = collections.defaultdict(int)
-        emitDic = collections.defaultdict(int)
-        possDic1 = collections.defaultdict(list)
-        possDic2 = collections.defaultdict(int)
+            wordDic = collections.defaultdict(int)
+            tagDic = collections.defaultdict(int)
+            transDic = collections.defaultdict(int)
+            emitDic = collections.defaultdict(int)
+            possDic1 = collections.defaultdict(list)
+            possDic2 = collections.defaultdict(int)
 
         #last pos -> most likely pos
-        lastDic = collections.defaultdict(str)
+            lastDic = collections.defaultdict(str)
 
         #variables to store for the next iteration
-        lastWord = ''
-        lastTag = ''
-        lastTagCount = 0
+            lastWord = ''
+            lastTag = ''
+            lastTagCount = 0
 
 
         #NEW LIST***
-        listola = []
+            listola = []
 
 
         #FIRST PASS~~~~~~
         #parsing input data
         #aggregating dictionairies
-        file.seek(0)
-        for line in file:
+            file.seek(0)
+            for line in file:
     
-            gram = bigram()
-            thisLine = line.split()
-            listLen = len(thisLine)
+                gram = bigram()
+                thisLine = line.split()
+                listLen = len(thisLine)
 
             #assign PRIOR word and tag to gram
-            gram.priorWord = lastWord
-            gram.priorTag = lastTag
-            gram.priorTagCount = lastTagCount
+                gram.priorWord = lastWord
+                gram.priorTag = lastTag
+                gram.priorTagCount = lastTagCount
 
             #if the current line contains a word and a tag
-            if listLen > 1:
+                if listLen > 1:
         
                 #assign CURRENT word and tag to gram
-                gram.currentWord = thisLine[0]
-                gram.currentTag = thisLine[1]
+                    gram.currentWord = thisLine[0]
+                    gram.currentTag = thisLine[1]
         
                 #and add to dictionairy -> list
-                possDic1[gram.currentWord].append(gram.currentTag)
+                    possDic1[gram.currentWord].append(gram.currentTag)
         
-            else:
-                gram.currentWord = ''
-                gram.currentTag = ''
+                else:
+                    gram.currentWord = ''
+                    gram.currentTag = ''
 
             #store transition & emission
-            gram.transition = (gram.priorTag,gram.currentTag)
-            gram.emission = (gram.currentTag,gram.currentWord)
+                gram.transition = (gram.priorTag,gram.currentTag)
+                gram.emission = (gram.currentTag,gram.currentWord)
 
             #increment dictionairies
-            transDic[gram.transition] += 1
-            emitDic[gram.emission] += 1
-            wordDic[gram.currentWord] += 1
-            tagDic[gram.currentTag] += 1
-            possDic2[gram.currentWord] += 1
+                transDic[gram.transition] += 1
+                emitDic[gram.emission] += 1
+                wordDic[gram.currentWord] += 1
+                tagDic[gram.currentTag] += 1
+                possDic2[gram.currentWord] += 1
     
             #add the gram to our list
-            theBigrams.append(gram)
+                theBigrams.append(gram)
 
             #set temp variables for next gram
-            lastWord = gram.currentWord
-            lastTag = gram.currentTag
-            lastTagCount = gram.tagCount
+                lastWord = gram.currentWord
+                lastTag = gram.currentTag
+                lastTagCount = gram.tagCount
 
         #Uniqify thingys in possDic1
-        for thingy in possDic1:
-            possDic1[thingy]=list(set(possDic1[thingy]))
+            for thingy in possDic1:
+                possDic1[thingy]=list(set(possDic1[thingy]))
 
-        copyTagDic = copy.deepcopy(tagDic)
-        copyTransDic = copy.deepcopy(transDic)
+            copyTagDic = copy.deepcopy(tagDic)
+            copyTransDic = copy.deepcopy(transDic)
 
         #lastDic will have tag -> tag+1 in strings
-        for tag in copyTagDic:
-            lastDic[tag] = ""
+            for tag in copyTagDic:
+                lastDic[tag] = ""
 
         #Counting total transitions from tag
-        for trans in transDic:
-            copyTagDic[trans[0]] += 1
+            for trans in transDic:
+                copyTagDic[trans[0]] += 1
 
         #Taking transDic from count to prob
-        for trans in transDic:
-            copyTransDic[trans] = transDic[trans]/ float(copyTagDic[trans[0]])
+            for trans in transDic:
+                copyTransDic[trans] = transDic[trans]/ float(copyTagDic[trans[0]])
 
         #Setting copyTagDic back to zero
-        for tag in copyTagDic:
-            copyTagDic[tag] = 0
+            for tag in copyTagDic:
+                copyTagDic[tag] = 0
 
         #Setting max
-        for item in copyTransDic:
-            if copyTagDic[item[0]] < copyTransDic[item]:
-                copyTagDic[item[0]] = copyTransDic[item]
+            for item in copyTransDic:
+                if copyTagDic[item[0]] < copyTransDic[item]:
+                    copyTagDic[item[0]] = copyTransDic[item]
 
         #Storing in lastDic
-        for item in copyTransDic:
-            if copyTagDic[item[0]] == copyTransDic[item]:
+            for item in copyTransDic:
+                if copyTagDic[item[0]] == copyTransDic[item]:
 
                 #mapping tag -> tag + 1
-                lastDic[item[0]] = item[1]
+                    lastDic[item[0]] = item[1]
 
-        gramDic = collections.defaultdict(bigram)
+            gramDic = collections.defaultdict(bigram)
 
         #COUNTING~~~~~~~~~~~~~
         #We want the data from the dictionairies
         #stored locally with each bigram object
-        for item in theBigrams:
+            for item in theBigrams:
 
-            item.wordCount = wordDic[item.currentWord]
-            item.tagCount = tagDic[item.currentTag]
-            item.priorTagCount = tagDic[item.priorTag]    
-            item.transCount = transDic[item.transition]
+                item.wordCount = wordDic[item.currentWord]
+                item.tagCount = tagDic[item.currentTag]
+                item.priorTagCount = tagDic[item.priorTag]    
+                item.transCount = transDic[item.transition]
 
-            if item.emission[0] == item.currentTag and item.emission[1] == item.currentWord:
-                item.emitCount = emitDic[item.emission]
+                if item.emission[0] == item.currentTag and item.emission[1] == item.currentWord:
+                    item.emitCount = emitDic[item.emission]
 
-            item.possTags = possDic1[item.currentWord]
+                item.possTags = possDic1[item.currentWord]
 
-            item.scoreCalc()
-            gramDic[(item.currentWord,item.currentTag)] = item
+                item.scoreCalc()
+                gramDic[(item.currentWord,item.currentTag)] = item
 
             #-END-NLP----------------------------------------------------------------------------
     
-        a = db.GqlQuery("SELECT * FROM Hack")
-        results = a.fetch(10)
-        for result in results:
-            var1 = result.textBox1
+            a = db.GqlQuery("SELECT * FROM Hack")
+            results = a.fetch(10)
+            for result in results:
+                var1 = result.textBox1
             
-            splitted = var1.split(" ")
-            z = len(var1.split(" "))
-            if z == 1:
-                url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '&include_entities=true&result_type=mixed'
+                splitted = var1.split(" ")
+                z = len(var1.split(" "))
+                if z == 1:
+                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '&rpp=5&include_entities=true&result_type=mixed'
 
-            elif z == 2:
-                url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '%20' + splitted[1] + '&include_entities=true&result_type=mixed'                 
+                elif z == 2:
+                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '%20' + splitted[1] + '&rpp=5&include_entities=true&result_type=mixed'                 
 
-            else:
-                url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '%20' + splitted[1] + '%20' + splitted[2] + '&include_entities=true&result_type=mixed' 
+                else:
+                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '%20' + splitted[1] + '%20' + splitted[2] + '&rpp=5&include_entities=true&result_type=mixed' 
+                    
+            req = urllib2.urlopen(url)
+            text = str(req.read())
+            results = text.index('[')
+            meat = text[results:len(text)]
+            chunks = meat.split('"created_at"')
 
-        req = urllib2.urlopen(url)
-        text = str(req.read())
-        results = text.index('[')
-        meat = text[results:len(text)]
-        chunks = meat.split('"created_at"')
+            allTweets = []
+            for chunk in chunks:
+                if "text" in chunk:
+                    tweets = chunk.split('},{')
+                    for tweet in tweets:
+                        allTweets.append(tweet)
 
-        allTweets = []
-        for chunk in chunks:
-            if "text" in chunk:
-                tweets = chunk.split('},{')
-                for tweet in tweets:
-                    allTweets.append(tweet)
-
-        cleanTweets = []
-        for tweet in allTweets:
-            subStrBeg = tweet.find('","text":')
-            if subStrBeg != -1:
-                cleanTweets.append(tweet[subStrBeg+10:])
+            cleanTweets = []
+            for tweet in allTweets:
+                subStrBeg = tweet.find('","text":')
+                if subStrBeg != -1:
+                    cleanTweets.append(tweet[subStrBeg+10:])
 
 #        html = '<html><head><title>Results</title></head><body>'
-
-        atSignList = collections.defaultdict(int)
-        hashTagList = collections.defaultdict(int)
-        httpLinkList = collections.defaultdict(int)
-
-        wordList = collections.defaultdict(int)
-        for clean in cleanTweets:
-            subStrEnd = clean.find('","')
-            peice = clean[:subStrEnd]
-
-#            html = html + peice + '<br>' + '<br>'
-
-            words = peice.split(" ")
-
-            #----------MODS--------------------------------
-            sublist = []
-            for word in words:
-
-                #~~~~~~~~~NEWNEW~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                 
-                #search for @
-                foundAtSign = search(word,"@")
-                if foundAtSign == True:
-                    atSignList[word] += 1
+            atSignList = collections.defaultdict(int)
+            hashTagList = collections.defaultdict(int)
+            httpLinkList = collections.defaultdict(int)
 
-                #search for #
-                foundHashTag = search(word,"#")
-                if foundHashTag == True:
-                    hashTagList[word] += 1
+            wordList = collections.defaultdict(int)
+            for clean in cleanTweets:
+                subStrEnd = clean.find('","')
+                peice = clean[:subStrEnd]
 
-                #search for #
-                if "http" in word:
-                    httpLinkList[word] += 1
+#                html = html + peice + '<br>' + '<br>'
 
-                #~~~~~~~~~NEWNEW~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                words = peice.split(" ")
 
-                wordOne = ""
-                wordTwo = ""
+                #----------MODS--------------------------------
+                sublist = []
+                for word in words:
 
-                if word[-1:] == "," or word[-1:] == "." or word[-2:] == ".." or word[-1:] == "!" or word[-1:] == "?" or word[-1:] == ":":
-                    wordOne = word[:-1]
-                    wordTwo = word[-1:]
-
-                    if wordTwo == ",":
-                        wordTwo = "COMMA"
-
-                    wordList[wordOne] += 1
-                    wordList[wordTwo] += 1
+                   #~~~~~~~~~NEWNEW~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                 
-                    sublist.append(wordOne)
+                    #search for @
+                    foundAtSign = search(word,"@")
+                    if foundAtSign == True:
+                        atSignList[word] += 1
 
-                    if wordTwo != "":
-                        sublist.append(wordTwo) 
+                    #search for #
+                    foundHashTag = search(word,"#")
+                    if foundHashTag == True:
+                        hashTagList[word] += 1
+
+                    #search for #
+                    if "http" in word:
+                        httpLinkList[word] += 1
+
+                    #~~~~~~~~~NEWNEW~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+                    wordOne = ""
+                    wordTwo = ""
+
+                    word = word.replace("\\", "")
+
+                    x = 0
+                    x = word.find("\'")
+
+                    if word[-1:] == "," or word[-1:] == "." or word[-2:] == ".." or word[-1:] == "!" or word[-1:] == "?" or word[-1:] == ":":
+                        wordOne = word[:-1]
+                        wordTwo = word[-1:]
+
+                        if wordTwo == ",":
+                            wordTwo = "COMMA"
+
+                        wordList[wordOne] += 1
+                        wordList[wordTwo] += 1
                 
-                else:
-                    wordList[word] += 1                    
-                    sublist.append(word)
+                        sublist.append(wordOne)
 
-#                html = html + word + "<br>"
+                        if wordTwo != "":
+                            sublist.append(wordTwo) 
 
-            listola.append(sublist)
+                    elif x > 0:
+
+                        if word[x+1:] == "t":
+                            wordOne = word[:x-1]
+                            wordTwo = word[x-1:]
+
+                        else:
+                            wordOne = word[:x]
+                            wordTwo = word[x:]
+
+                        sublist.append(wordOne)
+                        sublist.append(wordTwo)
+
+                    else:
+                        wordList[word] += 1                    
+                        sublist.append(word)
+
+                listola.append(sublist)
 
             #----------------------------------------------
 
@@ -393,163 +418,159 @@ class FrontPage(webapp.RequestHandler):
         #Building up lists of possible word combinations or "sentences"
         #Computing likelihood of each tag sequence
 
-        file=open(developmentFile,'r')
+            file=open(developmentFile,'r')
 
-        sentsList = []
-        newSents = 1
-        sentsListNum = 0
-        theLastTag = ''
-        oovList = collections.defaultdict(int)
+            sentsList = []
+            newSents = 1
+            sentsListNum = 0
+            theLastTag = ''
+            oovList = collections.defaultdict(int)
 
 #        self.response.out.write(listola)        
         
-        for wordss in listola:
+            for wordss in listola:
 
 #            self.response.out.write(wordList)
             
-            currentTag = ''
+                currentTag = ''
 
-            if len(wordss) > 0:
+                if len(wordss) > 0:
 
-                for theWord in wordss:
-                    tags = possDic1[theWord]
+                    for theWord in wordss:
+                        if theWordy != "COMMA":
+                            theWordy = theWord.lower()
 
-                    if newSents == 1:
-                        newSents = 0
-                        sents = sentences()
-                        sents.addSentence()
+                        tags = possDic1[theWordy]
+
+                        if newSents == 1:
+                            newSents = 0
+                            sents = sentences()
+                            sents.addSentence()
     
                     #BIG CHANGE HERE ********************************
-                    if len(tags) >= 1:
+                        if len(tags) >= 1:
 
-                        tagMax = 0
-                        for tag in tags:
-                            gram = gramDic[(theWord,tag)]
-                            currentTag = tag
+                            tagMax = 0
 
-                            if gram.finalProb >= tagMax:
-                                tagMax = gram.finalProb                    
+                            for tag in tags:
+                                gram = gramDic[(theWordy,tag)]
+                                currentTag = tag
 
-                        for tag in tags:
-                            gram = gramDic[(theWord,tag)]
+                                if gram.finalProb >= tagMax:
+                                    tagMax = gram.finalProb                    
+
+                            for tag in tags:
+                                gram = gramDic[(theWordy,tag)]
                 
-                            if gram.finalProb == tagMax:
-                                sents.addWord(gram)
-
-                    else:
-                        #self.response.out.write("oov: " + theWord + "<br>")
-
-                        if theWord != "":
-                            oovList[theWord] += 1
-
-                        if len(tags) == 0:
-                            gram = bigram()
-                            gram.currentWord = theWord
-
-                            if theLastTag != "" and lastDic[theLastTag] != "":
-                                gram.currentTag = lastDic[theLastTag]
-                            else:
-                                gram.currentTag = "NN"
-                            gram.finalProb = .0001
-                            gramDic[(gram.currentWord,gram.currentTag)] = gram
+                                if gram.finalProb == tagMax:
+                                    sents.addWord(gram)
 
                         else:
-                            gram = gramDic[(theWord,tags[0])]
-                            currentTag = tags[0]
+                        #self.response.out.write("oov: " + theWord + "<br>")
 
-                        sents.addWord(gram)
+                            if theWord != "":
+                                oovList[theWord] += 1
 
-                else:
-                    newSents = 1
-                    sentsList.append(sents)
-                    sentsListNum = sentsListNum + 1
+                            if len(tags) == 0:
+                                gram = bigram()
+                                gram.currentWord = theWord
 
-                theLastTag = currentTag
+                                if theLastTag != "" and lastDic[theLastTag] != "":
+                                    gram.currentTag = lastDic[theLastTag]
+                                else:
+                                    gram.currentTag = "NN"
+                                gram.finalProb = .0001
+                                gramDic[(gram.currentWord,gram.currentTag)] = gram
+
+                            else:
+                                gram = gramDic[(theWord,tags[0])]
+                                currentTag = tags[0]
+
+                            sents.addWord(gram)
+
+                    else:
+                        newSents = 1
+                        sentsList.append(sents)
+                        sentsListNum = sentsListNum + 1
+
+                    theLastTag = currentTag
 
 #        self.response.out.write(listola)
 
         #Find max
-        for sents in sentsList:
-            for sent in sents.list:
-                sent.sentScore()
-                if sent.score > sents.sentsMax:
-                    sents.sentsMax = sent.score
+            for sents in sentsList:
+                for sent in sents.list:
+                    sent.sentScore()
+                    if sent.score > sents.sentsMax:
+                        sents.sentsMax = sent.score
 
-                sent.reversedBigrams = reversed(sent.bigrams)
-                nextTag = ""
-                count = 0
-                for gram in sent.reversedBigrams:
-                    if count != 0:
-                        gram.nextTag = nextTag
-                    nextTag = gram.currentTag
-                    count += 1
+                    sent.reversedBigrams = reversed(sent.bigrams)
+                    nextTag = ""
+                    count = 0
+                    for gram in sent.reversedBigrams:
+                        if count != 0:
+                            gram.nextTag = nextTag
+                        nextTag = gram.currentTag
+                        count += 1
 
         #outfile = open("out.txt","w")
 
-        htmlc = '<html><head><title>Results</title><link type="text/css" rel="stylesheet" href="/static/style.css" /></head><body>'
+            htmlc = '<html><head><title>Results</title><link type="text/css" rel="stylesheet" href="/static/style.css" /></head><body>'
 
-        htmlc = htmlc + '<div id="left">'
-        htmlc = htmlc + "<p>POS Tags - Out Of Vocabulary (OOV) in <span class='highlight'>red<span></p><br>"
+            htmlc = htmlc + '<div id="left">'
+            htmlc = htmlc + "<p>POS Tags - Out Of Vocabulary (OOV) in <span class='highlight'>red<span></p><br>"
 
 
-        htmlc = htmlc + '<div id="wrapper">'
-        htmlc = htmlc + '<form method="POST" action="/">'
-
-        htmlc = htmlc + '<table border="1">'
+            htmlc = htmlc + '<div id="wrapper">'
+#            htmlc = htmlc + '<form method="POST">'
 
         #Write output
-        for sents in sentsList:
-            num = 0
+            for sents in sentsList:
+                num = 0
+
+                htmlc = htmlc + "<p>"
         
-            for sent in sents.list:
-                if sent.score == sents.sentsMax and num == 0:
-                    htmlc = htmlc + "<tr><td><span class='sentence'>Sentence</span></td></tr>"
+                for sent in sents.list:
+                    if sent.score == sents.sentsMax and num == 0:
+                    
+                        htmlc = htmlc + '<span class="sentence">'
+                        for gram in sent.bigrams:
+                            htmlc = htmlc + gram.currentWord + " "
+                        htmlc = htmlc + '</span>'
 
-                    #self.response.out.write("<br>")
+                        htmlc = htmlc + "<br><br>"
+                   
+                        priorGramTag = ""
 
-                    #outfile.write("\n")
-                    priorGramTag = ""
+                        x = 0
+                        for gram in sent.bigrams:
+                            if gram.currentWord in oovList:
 
-#                    htmlc = htmlc + "<p>"
+                                htmlc = htmlc + '<span class="highlight">'
+                                htmlc = htmlc + str(gram.currentWord)
+                                htmlc = htmlc + '</span>'
 
-                    x = 0
-                    for gram in sent.bigrams:
-                        htmlc = htmlc + "<tr>"
-                        if gram.currentWord in oovList:
+                                htmlc = htmlc + " [" +str(gram.currentTag) + "]<br>"
 
-                            htmlc = htmlc + "<td>"
-                            htmlc = htmlc + '<span class="highlight">'
-                            htmlc = htmlc + str(gram.currentWord) + " [" + str(gram.currentTag) + "]"
-                            htmlc = htmlc + '</span>'
-                            htmlc = htmlc + "</td>"
+                                #htmlc = htmlc + str(Tag(auto_id=False))
 
-                            htmlc = htmlc + "<td>"
+                            else:
+                                htmlc = htmlc + str(gram.currentWord) + " [" + str(gram.currentTag) + "]<br>"
 
-                            htmlc = htmlc + str(Tag(auto_id=False))
+                            priorGramTag = gram.currentTag
+                            x += 1
+                            
+                        num += 1
 
-                            htmlc = htmlc + "</td>"
+                    htmlc = htmlc + "</p><br><br>"
 
-                        else:
-                            htmlc = htmlc + "<td>"
-                            htmlc = htmlc + str(gram.currentWord) + " [" + str(gram.currentTag) + "]"
-                            htmlc = htmlc + "</td>"
+            #htmlc = htmlc + '<input type="submit" name="sub_title" value="Submit">'        
 
-                        priorGramTag = gram.currentTag
-                        htmlc = htmlc + "</tr>"
-                        x += 1
-                    num += 1
+            #htmlc = htmlc + '</form>'
 
-#                    htmlc = htmlc + "</p>"
+            htmlc = htmlc + '</div>'
 
-        htmlc = htmlc + '<input type="submit" name="sub_title" value="Submit">'        
-
-        htmlc = htmlc + '</form>'
-
-        htmlc = htmlc + "</table>"
-
-        htmlc = htmlc + '</div>'
-
-        htmlc = htmlc + "</div>"
+            htmlc = htmlc + "</div>"
 
 #        htmlc = htmlc + '<div id="middleleft">'
 #        htmlc = htmlc + "<h4>Out Of Vocab</h4><br>"
@@ -567,12 +588,9 @@ class FrontPage(webapp.RequestHandler):
 
         #htmlc = htmlc + "\n"
 
-#        htmlc = htmlc + '<div id="middleright">'
-#        htmlc = htmlc + "<p># Hash Tags</p><br><p>"
-        
-#        for x in hashTagList:
-#            htmlc = htmlc + x + "<br>"
-#        htmlc = htmlc + '</p></div>'
+            htmlc = htmlc + '<div id="top">'
+            htmlc = htmlc + "<p>Active Learning / Domain Adaptation</p><br><p>"
+            htmlc = htmlc + '</div>'
 
 #        htmlc = htmlc + '<div id="right">'
 #        htmlc = htmlc + "<p>URLs</p><br><p>"
@@ -581,19 +599,28 @@ class FrontPage(webapp.RequestHandler):
 #            htmlc = htmlc + x + "<br>"
 #        htmlc = htmlc + '</p></div>'
 
-        htmlc = htmlc + '<div id="lexicon">'
-        htmlc = htmlc + "<p>Words Added To Your Lexicon</p><br><p>"
+            htmlc = htmlc + '<div id="lexicon">'
+            htmlc = htmlc + "<p>Words Added To Your Lexicon</p><br><p>"
 
-        htmlc = htmlc + "Hello" + "<br>"
+            htmlc = htmlc + "Hello" + "<br>"
 
-        htmlc = htmlc + '</p></div>'
+            htmlc = htmlc + '</p></div>'
 
-        htmlc = htmlc + '<a href="/results">Add To Lexicon</a>'
+            #htmlc = htmlc + '<a href="/results">Add To Lexicon</a>'
 
 #        htmlc = htmlc + '<div id="oov">'
 #        htmlc = htmlc + "<p>Active Learning</p><br><p>"
-        htmlc = htmlc + '</body></html>'
-        self.response.out.write(htmlc)
+            htmlc = htmlc + '</body></html>'
+
+            globalVar += 1
+
+            self.response.out.write(htmlc)
+
+        else:
+
+            htmlq = '<html><head><title>Results</title></head><body>Hello</body></html>'
+
+            self.response.out.write(htmlq)
 
 #~~~~~~~~~NEWNEW~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

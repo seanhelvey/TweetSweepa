@@ -135,14 +135,18 @@ class FrontPage(webapp.RequestHandler):
         for result in results:
             result.delete()
 
-        html = '<html><head><title>TweetSweepa</title></head><body>'
-        html = html + "<h3>Welcome to the TweetSweepa! (CURRENTLY BEING MODIFIED)<br></h3>"
-        html = html + "<h4>Search for the following words:<br></h4>"
+        html = '<html><head><title>TweetSweepa</title><link type="text/css" rel="stylesheet" href="/static/style.css" /></head><body>'
+        html = html + "<p><h3>***UNDER CONSTRUCTION***</h3></p><br>"
+        html = html + "<p><h3>Welcome to the TweetSweepa!</h3></p><br>"
+        html = html + "<p>Search for the following words:</p><br>"
         html = html + '<div id="wrapper">'
         html = html + '<form method="POST" action="/">'
-        html = html + str(Hack(auto_id=False))
+        xx = str(Hack(auto_id=False))
+        yy = xx.find(":")
+        stringCheese = xx[yy+1:] 
+        html = html + '<p>' + stringCheese
         html = html + '<input type="submit" name="sub_title" value="Submit">'        
-        html = html + '</form>'
+        html = html + '</p></form>'
         html = html + '</div>'
         html = html + '</body></html>'
         self.response.out.write(html)
@@ -152,12 +156,12 @@ class FrontPage(webapp.RequestHandler):
         page.textBox1 = self.request.get('textBox1')
         page.put()
 
-        global globalVar
+        globalVar = 0
 
         #CONTROL GOES HERE 
         #first post / second post
         if globalVar == 0:
-            htmlc = '<html><head><title>TweetSweepa</title></head><body>'
+            #htmlc = '<html><head><title>TweetSweepa</title><link type="text/css" rel="stylesheet" href="/static/style.css" /></head><body>'
 
         #-BEG-NLP----------------------------------------------------------------------------
 
@@ -339,34 +343,39 @@ class FrontPage(webapp.RequestHandler):
                 subStrEnd = clean.find('","')
                 peice = clean[:subStrEnd]
 
-#            html = html + peice + '<br>' + '<br>'
+#                html = html + peice + '<br>' + '<br>'
 
                 words = peice.split(" ")
 
-            #----------MODS--------------------------------
+                #----------MODS--------------------------------
                 sublist = []
                 for word in words:
 
-                #~~~~~~~~~NEWNEW~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                   #~~~~~~~~~NEWNEW~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                 
-                #search for @
+                    #search for @
                     foundAtSign = search(word,"@")
                     if foundAtSign == True:
                         atSignList[word] += 1
 
-                #search for #
+                    #search for #
                     foundHashTag = search(word,"#")
                     if foundHashTag == True:
                         hashTagList[word] += 1
 
-                #search for #
+                    #search for #
                     if "http" in word:
                         httpLinkList[word] += 1
 
-                #~~~~~~~~~NEWNEW~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                    #~~~~~~~~~NEWNEW~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
                     wordOne = ""
                     wordTwo = ""
+
+                    word = word.replace("\\", "")
+
+                    x = 0
+                    x = word.find("\'")
 
                     if word[-1:] == "," or word[-1:] == "." or word[-2:] == ".." or word[-1:] == "!" or word[-1:] == "?" or word[-1:] == ":":
                         wordOne = word[:-1]
@@ -382,12 +391,23 @@ class FrontPage(webapp.RequestHandler):
 
                         if wordTwo != "":
                             sublist.append(wordTwo) 
-                
+
+                    elif x > 0:
+
+                        if word[x+1:] == "t":
+                            wordOne = word[:x-1]
+                            wordTwo = word[x-1:]
+
+                        else:
+                            wordOne = word[:x]
+                            wordTwo = word[x:]
+
+                        sublist.append(wordOne)
+                        sublist.append(wordTwo)
+
                     else:
                         wordList[word] += 1                    
                         sublist.append(word)
-
-#                html = html + word + "<br>"
 
                 listola.append(sublist)
 
@@ -418,7 +438,12 @@ class FrontPage(webapp.RequestHandler):
                 if len(wordss) > 0:
 
                     for theWord in wordss:
-                        tags = possDic1[theWord]
+                        if theWord != "COMMA":
+                            theWordy = theWord.lower()
+                        else:
+                            theWordy = theWord
+
+                        tags = possDic1[theWordy]
 
                         if newSents == 1:
                             newSents = 0
@@ -429,15 +454,16 @@ class FrontPage(webapp.RequestHandler):
                         if len(tags) >= 1:
 
                             tagMax = 0
+
                             for tag in tags:
-                                gram = gramDic[(theWord,tag)]
+                                gram = gramDic[(theWordy,tag)]
                                 currentTag = tag
 
                                 if gram.finalProb >= tagMax:
                                     tagMax = gram.finalProb                    
 
                             for tag in tags:
-                                gram = gramDic[(theWord,tag)]
+                                gram = gramDic[(theWordy,tag)]
                 
                                 if gram.finalProb == tagMax:
                                     sents.addWord(gram)
@@ -499,60 +525,51 @@ class FrontPage(webapp.RequestHandler):
 
 
             htmlc = htmlc + '<div id="wrapper">'
-            htmlc = htmlc + '<form method="POST" action="/">'
-
-            htmlc = htmlc + '<table border="1">'
+#            htmlc = htmlc + '<form method="POST">'
 
         #Write output
             for sents in sentsList:
                 num = 0
+
+                htmlc = htmlc + "<p>"
         
                 for sent in sents.list:
                     if sent.score == sents.sentsMax and num == 0:
-                        htmlc = htmlc + "<tr><td><span class='sentence'>Sentence</span></td></tr>"
+                    
+                        htmlc = htmlc + '<span class="sentence">'
+                        for gram in sent.bigrams:
+                            htmlc = htmlc + gram.currentWord + " "
+                        htmlc = htmlc + '</span>'
 
-                    #self.response.out.write("<br>")
-
-                    #outfile.write("\n")
+                        htmlc = htmlc + "<br><br>"
+                   
                         priorGramTag = ""
-
-#                    htmlc = htmlc + "<p>"
 
                         x = 0
                         for gram in sent.bigrams:
-                            htmlc = htmlc + "<tr>"
                             if gram.currentWord in oovList:
 
-                                htmlc = htmlc + "<td>"
                                 htmlc = htmlc + '<span class="highlight">'
                                 htmlc = htmlc + str(gram.currentWord)
                                 htmlc = htmlc + '</span>'
-                                htmlc = htmlc + "</td>"
 
-                                htmlc = htmlc + "<td>"
-                                htmlc = htmlc + str(gram.currentTag)
+                                htmlc = htmlc + " [" +str(gram.currentTag) + "]<br>"
 
-                                htmlc = htmlc + str(Tag(auto_id=False))
-
-                                htmlc = htmlc + "</td>"
+                                #htmlc = htmlc + str(Tag(auto_id=False))
 
                             else:
-                                htmlc = htmlc + "<td>"
-                                htmlc = htmlc + str(gram.currentWord) + " [" + str(gram.currentTag) + "]"
-                                htmlc = htmlc + "</td>"
+                                htmlc = htmlc + str(gram.currentWord) + " [" + str(gram.currentTag) + "]<br>"
 
                             priorGramTag = gram.currentTag
-                            htmlc = htmlc + "</tr>"
                             x += 1
+                            
                         num += 1
 
-#                    htmlc = htmlc + "</p>"
+                    htmlc = htmlc + "</p><br><br>"
 
-            htmlc = htmlc + '<input type="submit" name="sub_title" value="Submit">'        
+            #htmlc = htmlc + '<input type="submit" name="sub_title" value="Submit">'        
 
-            htmlc = htmlc + '</form>'
-
-            htmlc = htmlc + "</table>"
+            #htmlc = htmlc + '</form>'
 
             htmlc = htmlc + '</div>'
 
@@ -574,12 +591,9 @@ class FrontPage(webapp.RequestHandler):
 
         #htmlc = htmlc + "\n"
 
-#        htmlc = htmlc + '<div id="middleright">'
-#        htmlc = htmlc + "<p># Hash Tags</p><br><p>"
-        
-#        for x in hashTagList:
-#            htmlc = htmlc + x + "<br>"
-#        htmlc = htmlc + '</p></div>'
+            htmlc = htmlc + '<div id="top">'
+            htmlc = htmlc + "<p>Active Learning / Domain Adaptation</p><br><p>"
+            htmlc = htmlc + '</div>'
 
 #        htmlc = htmlc + '<div id="right">'
 #        htmlc = htmlc + "<p>URLs</p><br><p>"
@@ -595,7 +609,7 @@ class FrontPage(webapp.RequestHandler):
 
             htmlc = htmlc + '</p></div>'
 
-            htmlc = htmlc + '<a href="/results">Add To Lexicon</a>'
+            #htmlc = htmlc + '<a href="/results">Add To Lexicon</a>'
 
 #        htmlc = htmlc + '<div id="oov">'
 #        htmlc = htmlc + "<p>Active Learning</p><br><p>"

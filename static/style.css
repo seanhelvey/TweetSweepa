@@ -1,10 +1,12 @@
+body{font-family:'Lucida Sans Unicode', 'Lucida Grande', sans-serif;}
+
 p,h1, h3, pre {
 padding: 5px 15px;
 margin: 0px;
 }
 
-#right,#middleright,#middle,#left,#oov, #lexicon{
-border: 1px solid #564b47;
+#right,#middleright,#top,#left,#oov,#lexicon{
+border: 2px solid #00CCFF;
 padding:0px;
 margin:0px;
 overflow: hidden; 
@@ -17,12 +19,11 @@ overflow-y:hidden;
 position: absolute;
 left: 2%;
 width: 64%;
-top: 56px;
-background-color: #E8E8E8;
+top: 356px;
 }
 
 .highlight {color: #C11B17}
-.sentence {color: #0066CC;background-color: #FFFFFF;}
+.sentence {}
 
 #oov {
 position: absolute;
@@ -35,15 +36,15 @@ top: 56px;
 position: absolute;
 left: 68%;
 width: 24%;
-top: 56px;
+top: 356px;
 }
 
-#middle {
+#top {
 position: absolute;
-left: 70%;
-width: 18%;
-top: 56px;
-background-color: #FFFF99;
+height: 310px;
+left: 2%;
+width: 90%;
+top: 36px;
 }
 
 #middleright {
