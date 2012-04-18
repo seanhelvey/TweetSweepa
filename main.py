@@ -138,10 +138,10 @@ class FrontPage(webapp.RequestHandler):
 
     def get(self):
 
-#        q = db.GqlQuery("SELECT * FROM Hack")
-#        results = q.fetch(10)
-#        for result in results:
-#            result.delete()
+        q = db.GqlQuery("SELECT * FROM Hack")
+        results = q.fetch(10)
+        for result in results:
+            result.delete()
 
         html = '<html><head><title>TweetSweepa</title><link type="text/css" rel="stylesheet" href="/static/style.css" /></head><body>'
         html = html + "<p><h3>***UNDER CONSTRUCTION***</h3></p><br>"
@@ -304,6 +304,7 @@ class FrontPage(webapp.RequestHandler):
     
             a = db.GqlQuery("SELECT * FROM Hack")
             results = a.fetch(10)
+
             for result in results:
                 var1 = result.textBox1
             
@@ -637,7 +638,7 @@ class FrontPage(webapp.RequestHandler):
             page.put()
 
             htmlq = '<html><head><title>Results</title></head><body>'
-            htmlq = htmlq + '<p>The tags have been added to your lexicon! <a href="/">do it again</a></p>'
+            htmlq = htmlq + '<p>The tags have been added to your lexicon! <a href="http://mznxbcv1029384756alskqpwo.appspot.com/">do it again</a></p>'
             htmlq = htmlq + '</body></html>'
 
             self.response.out.write(htmlq)

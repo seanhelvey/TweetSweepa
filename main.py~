@@ -23,7 +23,7 @@ from google.appengine.api import users
 from google.appengine.ext.db import djangoforms
 import collections
 import urllib2
-from urllib2 import Request, urlopen, URLError
+from urllib2 import Request, urlopen, HTTPError
 import tweetDB
 import cgitb
 cgitb.enable()
@@ -124,6 +124,15 @@ def search(string,letter):
         if string[i]==letter:
             n=n+1
             return True
+
+def urlFun(self, url): 
+    try:
+        req = urllib2.urlopen(url)
+        return req
+
+    except HTTPError,e:
+        htmlw = "<html><head><title>error</title></head><body>" + str(e) + "</body></html>"
+        self.response.out.write(htmlw)
 
 class FrontPage(webapp.RequestHandler):
 
@@ -313,7 +322,8 @@ class FrontPage(webapp.RequestHandler):
             dd = ""
             ddd = ""
 
-            req = urllib2.urlopen(url)
+            req = urlFun(self,url)
+
             textile = str(req.read())
             results = textile.index('[')
             meat = textile[results:len(textile)]
