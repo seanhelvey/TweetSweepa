@@ -1,3 +1,5 @@
+body{font-family:'Lucida Sans Unicode', 'Lucida Grande', sans-serif;}
+
 p,h1, h3, pre {
 padding: 5px 15px;
 margin: 0px;
@@ -21,7 +23,7 @@ top: 356px;
 }
 
 .highlight {color: #C11B17}
-.sentence {color: #0066CC;background-color: #FFFFFF;}
+.sentence {}
 
 #oov {
 position: absolute;

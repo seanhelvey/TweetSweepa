@@ -23,9 +23,11 @@ from google.appengine.api import users
 from google.appengine.ext.db import djangoforms
 import collections
 import urllib2
+from urllib2 import Request, urlopen, URLError
 import tweetDB
 import cgitb
 cgitb.enable()
+import sys
 
 #-BEG-NLP--------------------------------------------------------------------------
 
@@ -111,7 +113,7 @@ class sentence(object):
 class Hack(djangoforms.ModelForm):
     class Meta:
         model = tweetDB.Hack
-        exclude = ['newTag']
+        exclude = ['newTag1','newTag2','newTag3','newTag4','newTag5']
 
 class Tag(djangoforms.ModelForm):
     class Meta:
@@ -125,11 +127,10 @@ def search(string,letter):
             n=n+1
             return True
 
-globalVar = 0
-
 class FrontPage(webapp.RequestHandler):
+
     def get(self):
-        
+
         q = db.GqlQuery("SELECT * FROM Hack")
         results = q.fetch(10)
         for result in results:
@@ -141,27 +142,24 @@ class FrontPage(webapp.RequestHandler):
         html = html + "<p>Search for the following words:</p><br>"
         html = html + '<div id="wrapper">'
         html = html + '<form method="POST" action="/">'
-        xx = str(Hack(auto_id=False))
-        yy = xx.find(":")
-        stringCheese = xx[yy+1:] 
-        html = html + '<p>' + stringCheese
-        html = html + '<input type="submit" name="sub_title" value="Submit">'        
+        html = html + '<p>' + str(Hack(auto_id=False))
+        html = html + '<input type="submit" name="sub_title" value="Submit2">'        
         html = html + '</p></form>'
         html = html + '</div>'
         html = html + '</body></html>'
         self.response.out.write(html)
 
     def post(self):
+
         page = tweetDB.Hack()
         page.textBox1 = self.request.get('textBox1')
+#        page.which_user = users.get_current_user()
         page.put()
-
-        globalVar = 0
 
         #CONTROL GOES HERE 
         #first post / second post
-        if globalVar == 0:
-            #htmlc = '<html><head><title>TweetSweepa</title><link type="text/css" rel="stylesheet" href="/static/style.css" /></head><body>'
+
+        if self.request.get('textBox1') != "":
 
         #-BEG-NLP----------------------------------------------------------------------------
 
@@ -312,11 +310,15 @@ class FrontPage(webapp.RequestHandler):
 
                 else:
                     url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '%20' + splitted[1] + '%20' + splitted[2] + '&rpp=5&include_entities=true&result_type=mixed' 
-                    
+
+            textile = ""
+            dd = ""
+            ddd = ""
+
             req = urllib2.urlopen(url)
-            text = str(req.read())
-            results = text.index('[')
-            meat = text[results:len(text)]
+            textile = str(req.read())
+            results = textile.index('[')
+            meat = textile[results:len(textile)]
             chunks = meat.split('"created_at"')
 
             allTweets = []
@@ -521,11 +523,8 @@ class FrontPage(webapp.RequestHandler):
             htmlc = '<html><head><title>Results</title><link type="text/css" rel="stylesheet" href="/static/style.css" /></head><body>'
 
             htmlc = htmlc + '<div id="left">'
+            htmlc = htmlc + str(textile) + dd + ddd
             htmlc = htmlc + "<p>POS Tags - Out Of Vocabulary (OOV) in <span class='highlight'>red<span></p><br>"
-
-
-            htmlc = htmlc + '<div id="wrapper">'
-#            htmlc = htmlc + '<form method="POST">'
 
         #Write output
             for sents in sentsList:
@@ -555,8 +554,6 @@ class FrontPage(webapp.RequestHandler):
 
                                 htmlc = htmlc + " [" +str(gram.currentTag) + "]<br>"
 
-                                #htmlc = htmlc + str(Tag(auto_id=False))
-
                             else:
                                 htmlc = htmlc + str(gram.currentWord) + " [" + str(gram.currentTag) + "]<br>"
 
@@ -566,12 +563,6 @@ class FrontPage(webapp.RequestHandler):
                         num += 1
 
                     htmlc = htmlc + "</p><br><br>"
-
-            #htmlc = htmlc + '<input type="submit" name="sub_title" value="Submit">'        
-
-            #htmlc = htmlc + '</form>'
-
-            htmlc = htmlc + '</div>'
 
             htmlc = htmlc + "</div>"
 
@@ -593,6 +584,15 @@ class FrontPage(webapp.RequestHandler):
 
             htmlc = htmlc + '<div id="top">'
             htmlc = htmlc + "<p>Active Learning / Domain Adaptation</p><br><p>"
+
+            htmlc = htmlc + '<div id="wrapper">'
+
+            #have been trying empty string & / for action
+            htmlc = htmlc + '<form method="POST" action="/"><table>'
+            htmlc = htmlc + str(Tag(auto_id=False))
+            htmlc = htmlc + '<input type="submit" name="Submit" value="Submit">'        
+            htmlc = htmlc + '</table></form>'
+            htmlc = htmlc + '</div></p>'
             htmlc = htmlc + '</div>'
 
 #        htmlc = htmlc + '<div id="right">'
@@ -615,13 +615,13 @@ class FrontPage(webapp.RequestHandler):
 #        htmlc = htmlc + "<p>Active Learning</p><br><p>"
             htmlc = htmlc + '</body></html>'
 
-            globalVar += 1
-
             self.response.out.write(htmlc)
 
         else:
 
-            htmlq = '<html><head><title>Results</title></head><body>Hello</body></html>'
+            htmlq = '<html><head><title>Results</title></head><body>'
+            htmlq = htmlq + '<p><a href="/results">results</a></p>'
+            htmlq = htmlq + '</body></html>'
 
             self.response.out.write(htmlq)
 
@@ -631,7 +631,7 @@ class FrontPage(webapp.RequestHandler):
 class ResultsPage(webapp.RequestHandler):    
     def get(self):
 
-        htmlr = "hi"
+        htmlr = "<html><head><title>results</title></head><body>hi results</body></html>"
 
         self.response.out.write(htmlr)
 
