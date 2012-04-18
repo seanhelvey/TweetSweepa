@@ -113,12 +113,10 @@ class sentence(object):
 class Hack(djangoforms.ModelForm):
     class Meta:
         model = tweetDB.Hack
-        exclude = ['newTag1','newTag2','newTag3','newTag4','newTag5']
 
 class Tag(djangoforms.ModelForm):
     class Meta:
-        model = tweetDB.Hack
-        exclude = ['textBox1']
+        model = tweetDB.Tag
 
 def search(string,letter):
     n = 0
@@ -131,10 +129,10 @@ class FrontPage(webapp.RequestHandler):
 
     def get(self):
 
-        q = db.GqlQuery("SELECT * FROM Hack")
-        results = q.fetch(10)
-        for result in results:
-            result.delete()
+#        q = db.GqlQuery("SELECT * FROM Hack")
+#        results = q.fetch(10)
+#        for result in results:
+#            result.delete()
 
         html = '<html><head><title>TweetSweepa</title><link type="text/css" rel="stylesheet" href="/static/style.css" /></head><body>'
         html = html + "<p><h3>***UNDER CONSTRUCTION***</h3></p><br>"
@@ -151,15 +149,15 @@ class FrontPage(webapp.RequestHandler):
 
     def post(self):
 
-        page = tweetDB.Hack()
-        page.textBox1 = self.request.get('textBox1')
-#        page.which_user = users.get_current_user()
-        page.put()
-
         #CONTROL GOES HERE 
         #first post / second post
 
         if self.request.get('textBox1') != "":
+
+            page = tweetDB.Hack()
+            page.textBox1 = self.request.get('textBox1')
+#        page.which_user = users.get_current_user()
+            page.put()
 
         #-BEG-NLP----------------------------------------------------------------------------
 
@@ -583,16 +581,16 @@ class FrontPage(webapp.RequestHandler):
         #htmlc = htmlc + "\n"
 
             htmlc = htmlc + '<div id="top">'
-            htmlc = htmlc + "<p>Active Learning / Domain Adaptation</p><br><p>"
+            htmlc = htmlc + "<p>Active Learning / Domain Adaptation</p><br>"
 
             htmlc = htmlc + '<div id="wrapper">'
 
             #have been trying empty string & / for action
-            htmlc = htmlc + '<form method="POST" action="/"><table>'
-            htmlc = htmlc + str(Tag(auto_id=False))
-            htmlc = htmlc + '<input type="submit" name="Submit" value="Submit">'        
-            htmlc = htmlc + '</table></form>'
-            htmlc = htmlc + '</div></p>'
+            htmlc = htmlc + '<form method="POST" action="/">'
+            htmlc = htmlc + '<p>' + str(Tag(auto_id=False))
+            htmlc = htmlc + '<input type="submit" name="Submit" value="Submit"></p>'
+            htmlc = htmlc + '</form>'
+            htmlc = htmlc + '</div>'
             htmlc = htmlc + '</div>'
 
 #        htmlc = htmlc + '<div id="right">'
@@ -619,8 +617,17 @@ class FrontPage(webapp.RequestHandler):
 
         else:
 
+            page = tweetDB.Tag()
+            page.newTag1 = self.request.get('newTag1')
+            page.newTag2 = self.request.get('newTag2')
+            page.newTag3 = self.request.get('newTag3')
+            page.newTag4 = self.request.get('newTag4')
+            page.newTag5 = self.request.get('newTag5')
+    #        page.which_user = users.get_current_user()
+            page.put()
+
             htmlq = '<html><head><title>Results</title></head><body>'
-            htmlq = htmlq + '<p><a href="/results">results</a></p>'
+            htmlq = htmlq + '<p>The tags have been added to your lexicon! <a href="/">do it again</a></p>'
             htmlq = htmlq + '</body></html>'
 
             self.response.out.write(htmlq)
@@ -631,7 +638,9 @@ class FrontPage(webapp.RequestHandler):
 class ResultsPage(webapp.RequestHandler):    
     def get(self):
 
-        htmlr = "<html><head><title>results</title></head><body>hi results</body></html>"
+        htmlr = '<html><head><title>Results</title></head><body>'
+        htmlr = htmlr + '<p><a href="/">The tags have been added to your lexicon!</a></p>'
+        htmlr = htmlr + '</body></html>'
 
         self.response.out.write(htmlr)
 
