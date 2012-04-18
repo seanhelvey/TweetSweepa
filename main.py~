@@ -154,10 +154,10 @@ class FrontPage(webapp.RequestHandler):
 
         if self.request.get('textBox1') != "":
 
-        page = tweetDB.Hack()
-        page.textBox1 = self.request.get('textBox1')
+            page = tweetDB.Hack()
+            page.textBox1 = self.request.get('textBox1')
 #        page.which_user = users.get_current_user()
-        page.put()
+            page.put()
 
         #-BEG-NLP----------------------------------------------------------------------------
 
@@ -618,11 +618,13 @@ class FrontPage(webapp.RequestHandler):
         else:
 
             page = tweetDB.Tag()
-            page.newTag1 = self.request.get('textBox1')
+            page.newTag1 = self.request.get('newTag1')
+            page.newTag2 = self.request.get('newTag2')
+            page.newTag3 = self.request.get('newTag3')
+            page.newTag4 = self.request.get('newTag4')
+            page.newTag5 = self.request.get('newTag5')
     #        page.which_user = users.get_current_user()
             page.put()
-
-
 
             htmlq = '<html><head><title>Results</title></head><body>'
             htmlq = htmlq + '<p>The tags have been added to your lexicon! <a href="/">do it again</a></p>'
