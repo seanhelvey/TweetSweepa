@@ -115,10 +115,12 @@ class sentence(object):
 class Hack(djangoforms.ModelForm):
     class Meta:
         model = tweetDB.Hack
+        exclude = ['which_user']
 
 class Tag(djangoforms.ModelForm):
     class Meta:
         model = tweetDB.Tag
+        exclude = ['which_user']
 
 def search(string,letter):
     n = 0
@@ -160,13 +162,13 @@ class FrontPage(webapp.RequestHandler):
 
     def post(self):
 
-        #CONTROL GOES HERE 
+        #CONTROL HERE 
         #first post / second post
         if self.request.get('textBox1') != "":
 
             page = tweetDB.Hack()
             page.textBox1 = self.request.get('textBox1')
-#        page.which_user = users.get_current_user()
+            page.which_user = users.get_current_user()
             page.put()
 
         #-BEG-NLP----------------------------------------------------------------------------
@@ -482,13 +484,14 @@ class FrontPage(webapp.RequestHandler):
 
                         else:
                         #self.response.out.write("oov: " + theWord + "<br>")
-
-                            if theWord != "":
-                                oovList[theWord] += 1
+                            
+                            #from theWord to theWordy below
+                            if theWordy != "":
+                                oovList[theWordy] += 1
 
                             if len(tags) == 0:
                                 gram = bigram()
-                                gram.currentWord = theWord
+                                gram.currentWord = theWordy
 
                                 if theLastTag != "" and lastDic[theLastTag] != "":
                                     gram.currentTag = lastDic[theLastTag]
@@ -498,7 +501,7 @@ class FrontPage(webapp.RequestHandler):
                                 gramDic[(gram.currentWord,gram.currentTag)] = gram
 
                             else:
-                                gram = gramDic[(theWord,tags[0])]
+                                gram = gramDic[(theWordy,tags[0])]
                                 currentTag = tags[0]
 
                             sents.addWord(gram)
@@ -595,6 +598,7 @@ class FrontPage(webapp.RequestHandler):
             #oovList
             sortedList = sorted(oovList.items(), key=itemgetter(1))
             last5 = sortedList[-5:]
+            last5.reverse()
 
             htmlc = htmlc + '<div id="top">'
             htmlc = htmlc + "<p>Active Learning / Domain Adaptation<br>"
@@ -639,9 +643,7 @@ class FrontPage(webapp.RequestHandler):
 #        htmlc = htmlc + '</p></div>'
 
             htmlc = htmlc + '<div id="lexicon">'
-            htmlc = htmlc + "<p>Words Added To Your Lexicon</p><br><p>"
-
-            htmlc = htmlc + "Hello user" + "<br>"
+            htmlc = htmlc + "<p>"+ str(page.which_user) + "'s Lexicon</p><br><p>"
             
 #            for oov in oovList:
 #                htmlc = htmlc +  str(oov) + " " + str(oovList[oov])
@@ -673,7 +675,7 @@ class FrontPage(webapp.RequestHandler):
             page.newTag4 = self.request.get('newTag4')
             page.newTag5 = self.request.get('newTag5')
 
-    #        page.which_user = users.get_current_user()
+            page.which_user = users.get_current_user()
             page.put()
 
             htmlq = '<html><head><title>Results</title></head><body>'
