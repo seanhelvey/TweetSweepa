@@ -29,6 +29,8 @@ import cgitb
 cgitb.enable()
 import sys
 
+from operator import itemgetter
+
 #-BEG-NLP--------------------------------------------------------------------------
 
 import copy
@@ -144,9 +146,9 @@ class FrontPage(webapp.RequestHandler):
             result.delete()
 
         html = '<html><head><title>TweetSweepa</title><link type="text/css" rel="stylesheet" href="/static/style.css" /></head><body>'
-        html = html + "<p><h3>***UNDER CONSTRUCTION***</h3></p><br>"
-        html = html + "<p><h3>Welcome to the TweetSweepa!</h3></p><br>"
-        html = html + "<p>Search for the following words:</p><br>"
+        html = html + "<h4>***UNDER CONSTRUCTION***<br>"
+        html = html + "Welcome to the TweetSweepa!<br>"
+        html = html + "Search for the following words:</h4>"
         html = html + '<div id="wrapper">'
         html = html + '<form method="POST" action="/">'
         html = html + '<p>' + str(Hack(auto_id=False))
@@ -160,7 +162,6 @@ class FrontPage(webapp.RequestHandler):
 
         #CONTROL GOES HERE 
         #first post / second post
-
         if self.request.get('textBox1') != "":
 
             page = tweetDB.Hack()
@@ -311,13 +312,13 @@ class FrontPage(webapp.RequestHandler):
                 splitted = var1.split(" ")
                 z = len(var1.split(" "))
                 if z == 1:
-                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '&rpp=5&include_entities=true&result_type=mixed'
+                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '&rpp=30&include_entities=true&result_type=mixed'
 
                 elif z == 2:
-                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '%20' + splitted[1] + '&rpp=5&include_entities=true&result_type=mixed'                 
+                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '%20' + splitted[1] + '&rpp=30&include_entities=true&result_type=mixed'                 
 
                 else:
-                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '%20' + splitted[1] + '%20' + splitted[2] + '&rpp=5&include_entities=true&result_type=mixed' 
+                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '%20' + splitted[1] + '%20' + splitted[2] + '&rpp=30&include_entities=true&result_type=mixed' 
 
             textile = ""
             dd = ""
@@ -532,7 +533,7 @@ class FrontPage(webapp.RequestHandler):
             htmlc = '<html><head><title>Results</title><link type="text/css" rel="stylesheet" href="/static/style.css" /></head><body>'
 
             htmlc = htmlc + '<div id="left">'
-            htmlc = htmlc + str(textile) + dd + ddd
+#            htmlc = htmlc + str(textile) + dd + ddd
             htmlc = htmlc + "<p>POS Tags - Out Of Vocabulary (OOV) in <span class='highlight'>red<span></p><br>"
 
         #Write output
@@ -590,9 +591,34 @@ class FrontPage(webapp.RequestHandler):
 #        htmlc = htmlc + '</p></div>'
 
         #htmlc = htmlc + "\n"
+            
+            #oovList
+            sortedList = sorted(oovList.items(), key=itemgetter(1))
+            last5 = sortedList[-5:]
 
             htmlc = htmlc + '<div id="top">'
-            htmlc = htmlc + "<p>Active Learning / Domain Adaptation</p><br>"
+            htmlc = htmlc + "<p>Active Learning / Domain Adaptation<br>"
+            htmlc = htmlc + "The 5 most frequent oov words:<br></p>"
+
+            htmlc = htmlc + '<div id="word1">'
+            htmlc = htmlc + str(last5[0])
+            htmlc = htmlc + '</div>'
+
+            htmlc = htmlc + '<div id="word2">'
+            htmlc = htmlc + str(last5[1])
+            htmlc = htmlc + '</div>'
+
+            htmlc = htmlc + '<div id="word3">'
+            htmlc = htmlc + str(last5[2])
+            htmlc = htmlc + '</div>'
+
+            htmlc = htmlc + '<div id="word4">'
+            htmlc = htmlc + str(last5[3])
+            htmlc = htmlc + '</div>'
+
+            htmlc = htmlc + '<div id="word5">'
+            htmlc = htmlc + str(last5[4])
+            htmlc = htmlc + '</div>'
 
             htmlc = htmlc + '<div id="wrapper">'
 
@@ -602,6 +628,7 @@ class FrontPage(webapp.RequestHandler):
             htmlc = htmlc + '<input type="submit" name="Submit" value="Submit"></p>'
             htmlc = htmlc + '</form>'
             htmlc = htmlc + '</div>'
+
             htmlc = htmlc + '</div>'
 
 #        htmlc = htmlc + '<div id="right">'
@@ -614,7 +641,10 @@ class FrontPage(webapp.RequestHandler):
             htmlc = htmlc + '<div id="lexicon">'
             htmlc = htmlc + "<p>Words Added To Your Lexicon</p><br><p>"
 
-            htmlc = htmlc + "Hello" + "<br>"
+            htmlc = htmlc + "Hello user" + "<br>"
+            
+#            for oov in oovList:
+#                htmlc = htmlc +  str(oov) + " " + str(oovList[oov])
 
             htmlc = htmlc + '</p></div>'
 
@@ -629,11 +659,20 @@ class FrontPage(webapp.RequestHandler):
         else:
 
             page = tweetDB.Tag()
+
+            #fix RHS
+#            page.newWord1 = ""
+#            page.newWord2 = ""
+#            page.newWord3 = ""
+#            page.newWord4 = ""
+#            page.newWord5 = ""
+
             page.newTag1 = self.request.get('newTag1')
             page.newTag2 = self.request.get('newTag2')
             page.newTag3 = self.request.get('newTag3')
             page.newTag4 = self.request.get('newTag4')
             page.newTag5 = self.request.get('newTag5')
+
     #        page.which_user = users.get_current_user()
             page.put()
 
