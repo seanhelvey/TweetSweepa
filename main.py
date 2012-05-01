@@ -120,7 +120,7 @@ class Hack(djangoforms.ModelForm):
 class Tag(djangoforms.ModelForm):
     class Meta:
         model = tweetDB.Tag
-        exclude = ['which_user']
+        exclude = ['which_user','newWord1','newWord2','newWord3','newWord4','newWord5']
 
 def search(string,letter):
     n = 0
@@ -171,15 +171,15 @@ class FrontPage(webapp.RequestHandler):
             page.which_user = users.get_current_user()
             page.put()
 
-        #-BEG-NLP----------------------------------------------------------------------------
+            #-BEG-NLP----------------------------------------------------------------------------
 
             #open trainingFile for read
             file=open(trainingFile,'r')
 
-        #list of bigrams for aggregating data
+            #list of bigrams for aggregating data
             theBigrams = []
 
-        #dictionairies for counting
+            #dictionairies for counting
             wordDic = collections.defaultdict(int)
             tagDic = collections.defaultdict(int)
             transDic = collections.defaultdict(int)
@@ -187,22 +187,22 @@ class FrontPage(webapp.RequestHandler):
             possDic1 = collections.defaultdict(list)
             possDic2 = collections.defaultdict(int)
 
-        #last pos -> most likely pos
+            #last pos -> most likely pos
             lastDic = collections.defaultdict(str)
 
-        #variables to store for the next iteration
+            #variables to store for the next iteration
             lastWord = ''
             lastTag = ''
             lastTagCount = 0
 
 
-        #NEW LIST***
+            #NEW LIST***
             listola = []
 
 
-        #FIRST PASS~~~~~~
-        #parsing input data
-        #aggregating dictionairies
+            #FIRST PASS~~~~~~
+            #parsing input data
+            #aggregating dictionairies
             file.seek(0)
             for line in file:
     
@@ -210,84 +210,84 @@ class FrontPage(webapp.RequestHandler):
                 thisLine = line.split()
                 listLen = len(thisLine)
 
-            #assign PRIOR word and tag to gram
+                #assign PRIOR word and tag to gram
                 gram.priorWord = lastWord
                 gram.priorTag = lastTag
                 gram.priorTagCount = lastTagCount
 
-            #if the current line contains a word and a tag
+                #if the current line contains a word and a tag
                 if listLen > 1:
         
-                #assign CURRENT word and tag to gram
+                    #assign CURRENT word and tag to gram
                     gram.currentWord = thisLine[0]
                     gram.currentTag = thisLine[1]
         
-                #and add to dictionairy -> list
+                    #and add to dictionairy -> list
                     possDic1[gram.currentWord].append(gram.currentTag)
         
                 else:
                     gram.currentWord = ''
                     gram.currentTag = ''
 
-            #store transition & emission
+                #store transition & emission
                 gram.transition = (gram.priorTag,gram.currentTag)
                 gram.emission = (gram.currentTag,gram.currentWord)
 
-            #increment dictionairies
+                #increment dictionairies
                 transDic[gram.transition] += 1
                 emitDic[gram.emission] += 1
                 wordDic[gram.currentWord] += 1
                 tagDic[gram.currentTag] += 1
                 possDic2[gram.currentWord] += 1
     
-            #add the gram to our list
+                #add the gram to our list
                 theBigrams.append(gram)
 
-            #set temp variables for next gram
+                #set temp variables for next gram
                 lastWord = gram.currentWord
                 lastTag = gram.currentTag
                 lastTagCount = gram.tagCount
 
-        #Uniqify thingys in possDic1
+            #Uniqify thingys in possDic1
             for thingy in possDic1:
                 possDic1[thingy]=list(set(possDic1[thingy]))
 
             copyTagDic = copy.deepcopy(tagDic)
             copyTransDic = copy.deepcopy(transDic)
 
-        #lastDic will have tag -> tag+1 in strings
+            #lastDic will have tag -> tag+1 in strings
             for tag in copyTagDic:
                 lastDic[tag] = ""
 
-        #Counting total transitions from tag
+            #Counting total transitions from tag
             for trans in transDic:
                 copyTagDic[trans[0]] += 1
 
-        #Taking transDic from count to prob
+            #Taking transDic from count to prob
             for trans in transDic:
                 copyTransDic[trans] = transDic[trans]/ float(copyTagDic[trans[0]])
 
-        #Setting copyTagDic back to zero
+            #Setting copyTagDic back to zero
             for tag in copyTagDic:
                 copyTagDic[tag] = 0
 
-        #Setting max
+            #Setting max
             for item in copyTransDic:
                 if copyTagDic[item[0]] < copyTransDic[item]:
                     copyTagDic[item[0]] = copyTransDic[item]
 
-        #Storing in lastDic
+            #Storing in lastDic
             for item in copyTransDic:
                 if copyTagDic[item[0]] == copyTransDic[item]:
 
-                #mapping tag -> tag + 1
+                    #mapping tag -> tag + 1
                     lastDic[item[0]] = item[1]
 
             gramDic = collections.defaultdict(bigram)
 
-        #COUNTING~~~~~~~~~~~~~
-        #We want the data from the dictionairies
-        #stored locally with each bigram object
+            #COUNTING~~~~~~~~~~~~~
+            #We want the data from the dictionairies
+            #stored locally with each bigram object
             for item in theBigrams:
 
                 item.wordCount = wordDic[item.currentWord]
@@ -314,13 +314,13 @@ class FrontPage(webapp.RequestHandler):
                 splitted = var1.split(" ")
                 z = len(var1.split(" "))
                 if z == 1:
-                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '&rpp=30&include_entities=true&result_type=mixed'
+                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '&rpp=30&include_entities=true&result_type=mixed&lang=en'
 
                 elif z == 2:
-                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '%20' + splitted[1] + '&rpp=30&include_entities=true&result_type=mixed'                 
+                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '%20' + splitted[1] + '&rpp=30&include_entities=true&result_type=mixed&lang=en'                 
 
                 else:
-                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '%20' + splitted[1] + '%20' + splitted[2] + '&rpp=30&include_entities=true&result_type=mixed' 
+                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '%20' + splitted[1] + '%20' + splitted[2] + '&rpp=30&include_entities=true&result_type=mixed&lang=en' 
 
             textile = ""
             dd = ""
@@ -346,8 +346,6 @@ class FrontPage(webapp.RequestHandler):
                 if subStrBeg != -1:
                     cleanTweets.append(tweet[subStrBeg+10:])
 
-#        html = '<html><head><title>Results</title></head><body>'
-                
             atSignList = collections.defaultdict(int)
             hashTagList = collections.defaultdict(int)
             httpLinkList = collections.defaultdict(int)
@@ -356,8 +354,6 @@ class FrontPage(webapp.RequestHandler):
             for clean in cleanTweets:
                 subStrEnd = clean.find('","')
                 peice = clean[:subStrEnd]
-
-#                html = html + peice + '<br>' + '<br>'
 
                 words = peice.split(" ")
 
@@ -427,11 +423,11 @@ class FrontPage(webapp.RequestHandler):
 
             #----------------------------------------------
 
-        #-BEG-NLP--------------------------------------------------------------------
-        
-        #SECOND PASS~~~~~~~~
-        #Building up lists of possible word combinations or "sentences"
-        #Computing likelihood of each tag sequence
+            #-BEG-NLP--------------------------------------------------------------------
+         
+            #SECOND PASS~~~~~~~~
+            #Building up lists of possible word combinations or "sentences"
+            #Computing likelihood of each tag sequence
 
             file=open(developmentFile,'r')
 
@@ -441,12 +437,8 @@ class FrontPage(webapp.RequestHandler):
             theLastTag = ''
             oovList = collections.defaultdict(int)
 
-#        self.response.out.write(listola)        
-        
             for wordss in listola:
 
-#            self.response.out.write(wordList)
-            
                 currentTag = ''
 
                 if len(wordss) > 0:
@@ -464,7 +456,7 @@ class FrontPage(webapp.RequestHandler):
                             sents = sentences()
                             sents.addSentence()
     
-                    #BIG CHANGE HERE ********************************
+                        #BIG CHANGE HERE ********************************
                         if len(tags) >= 1:
 
                             tagMax = 0
@@ -483,8 +475,7 @@ class FrontPage(webapp.RequestHandler):
                                     sents.addWord(gram)
 
                         else:
-                        #self.response.out.write("oov: " + theWord + "<br>")
-                            
+                                
                             #from theWord to theWordy below
                             if theWordy != "":
                                 oovList[theWordy] += 1
@@ -513,9 +504,7 @@ class FrontPage(webapp.RequestHandler):
 
                     theLastTag = currentTag
 
-#        self.response.out.write(listola)
-
-        #Find max
+            #Find max
             for sents in sentsList:
                 for sent in sents.list:
                     sent.sentScore()
@@ -531,15 +520,12 @@ class FrontPage(webapp.RequestHandler):
                         nextTag = gram.currentTag
                         count += 1
 
-        #outfile = open("out.txt","w")
-
             htmlc = '<html><head><title>Results</title><link type="text/css" rel="stylesheet" href="/static/style.css" /></head><body>'
 
             htmlc = htmlc + '<div id="left">'
-#            htmlc = htmlc + str(textile) + dd + ddd
             htmlc = htmlc + "<p>POS Tags - Out Of Vocabulary (OOV) in <span class='highlight'>red<span></p><br>"
 
-        #Write output
+            #Write output
             for sents in sentsList:
                 num = 0
 
@@ -548,13 +534,6 @@ class FrontPage(webapp.RequestHandler):
                 for sent in sents.list:
                     if sent.score == sents.sentsMax and num == 0:
                     
-                        htmlc = htmlc + '<span class="sentence">'
-                        for gram in sent.bigrams:
-                            htmlc = htmlc + gram.currentWord + " "
-                        htmlc = htmlc + '</span>'
-
-                        htmlc = htmlc + "<br><br>"
-                   
                         priorGramTag = ""
 
                         x = 0
@@ -565,10 +544,10 @@ class FrontPage(webapp.RequestHandler):
                                 htmlc = htmlc + str(gram.currentWord)
                                 htmlc = htmlc + '</span>'
 
-                                htmlc = htmlc + " [" +str(gram.currentTag) + "]<br>"
+                                htmlc = htmlc + " [" +str(gram.currentTag) + "] "
 
                             else:
-                                htmlc = htmlc + str(gram.currentWord) + " [" + str(gram.currentTag) + "]<br>"
+                                htmlc = htmlc + str(gram.currentWord) + " [" + str(gram.currentTag) + "] "
 
                             priorGramTag = gram.currentTag
                             x += 1
@@ -579,22 +558,6 @@ class FrontPage(webapp.RequestHandler):
 
             htmlc = htmlc + "</div>"
 
-#        htmlc = htmlc + '<div id="middleleft">'
-#        htmlc = htmlc + "<h4>Out Of Vocab</h4><br>"
-        
-#        for x in oovList:
-#            htmlc = htmlc + x + "<br>"
-#        htmlc = htmlc + '</div>'
-
-#        htmlc = htmlc + '<div id="middle">'
-#        htmlc = htmlc + "<p>@ At Signs</p><br><p>"
-        
-#        for x in atSignList:
-#            htmlc = htmlc + x + "<br>"
-#        htmlc = htmlc + '</p></div>'
-
-        #htmlc = htmlc + "\n"
-            
             #oovList
             sortedList = sorted(oovList.items(), key=itemgetter(1))
             last5 = sortedList[-5:]
@@ -635,25 +598,11 @@ class FrontPage(webapp.RequestHandler):
 
             htmlc = htmlc + '</div>'
 
-#        htmlc = htmlc + '<div id="right">'
-#        htmlc = htmlc + "<p>URLs</p><br><p>"
-        
-#        for x in httpLinkList:
-#            htmlc = htmlc + x + "<br>"
-#        htmlc = htmlc + '</p></div>'
-
             htmlc = htmlc + '<div id="lexicon">'
             htmlc = htmlc + "<p>"+ str(page.which_user) + "'s Lexicon</p><br><p>"
             
-#            for oov in oovList:
-#                htmlc = htmlc +  str(oov) + " " + str(oovList[oov])
-
             htmlc = htmlc + '</p></div>'
 
-            #htmlc = htmlc + '<a href="/results">Add To Lexicon</a>'
-
-#        htmlc = htmlc + '<div id="oov">'
-#        htmlc = htmlc + "<p>Active Learning</p><br><p>"
             htmlc = htmlc + '</body></html>'
 
             self.response.out.write(htmlc)
@@ -663,11 +612,11 @@ class FrontPage(webapp.RequestHandler):
             page = tweetDB.Tag()
 
             #fix RHS
-#            page.newWord1 = ""
-#            page.newWord2 = ""
-#            page.newWord3 = ""
-#            page.newWord4 = ""
-#            page.newWord5 = ""
+            page.newWord1 = "z"
+            page.newWord2 = "zz"
+            page.newWord3 = "zzz"
+            page.newWord4 = "zzzz"
+            page.newWord5 = "zzzzz"
 
             page.newTag1 = self.request.get('newTag1')
             page.newTag2 = self.request.get('newTag2')
@@ -685,7 +634,6 @@ class FrontPage(webapp.RequestHandler):
             self.response.out.write(htmlq)
 
 #~~~~~~~~~NEWNEW~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
         
 class ResultsPage(webapp.RequestHandler):    
     def get(self):
@@ -697,7 +645,6 @@ class ResultsPage(webapp.RequestHandler):
         self.response.out.write(htmlr)
 
         #-END-NLP--------------------------------------------------------------------
-
 
 application = webapp.WSGIApplication([('/', FrontPage),('/results',ResultsPage)],debug=True)
 

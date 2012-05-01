@@ -54,8 +54,8 @@ top: 56px;
 
 #lexicon {
 position: absolute;
-left: 64%;
-width: 28%;
+left: 66%;
+width: 26%;
 top: 356px;
 }
 

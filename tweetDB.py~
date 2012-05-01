@@ -2,7 +2,7 @@ from google.appengine.ext import db
 
 class Hack(db.Model):
     textBox1 = db.StringProperty()
-#    which_user = db.UserProperty()
+    which_user = db.UserProperty()
 
 class Tag(db.Model):
 #    newWord1 = db.StringProperty()
@@ -19,3 +19,5 @@ class Tag(db.Model):
 
 #    newWord5 = db.StringProperty()
     newTag5 = db.StringProperty()
+
+    which_user = db.UserProperty()
