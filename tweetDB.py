@@ -19,3 +19,8 @@ class NewWord(db.Model):
     three = db.StringProperty()
     four = db.StringProperty()
     five = db.StringProperty()
+
+class Pair(db.Model):
+    word = db.StringProperty()
+    tag = db.StringProperty()
+    which_user = db.UserProperty()

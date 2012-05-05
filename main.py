@@ -126,6 +126,10 @@ class NewWord(djangoforms.ModelForm):
     class Meta:
         model = tweetDB.NewWord
 
+class Pair(djangoforms.ModelForm):
+    class Meta:
+        model = tweetDB.Pair
+
 def search(string,letter):
     n = 0
     for i in range (len(string)):
@@ -151,15 +155,15 @@ class FrontPage(webapp.RequestHandler):
         for result in results:
             result.delete()
 
-#        qq = db.GqlQuery("SELECT * FROM Tag")
-#        results = qq.fetch(10)
-#        for result in results:
-#            result.delete()
+        qq = db.GqlQuery("SELECT * FROM Tag")
+        results = qq.fetch(10)
+        for result in results:
+            result.delete()
 
-#        qqq = db.GqlQuery("SELECT * FROM NewWord")
-#        results = qqq.fetch(10)
-#        for result in results:
-#            result.delete()
+        qqq = db.GqlQuery("SELECT * FROM NewWord")
+        results = qqq.fetch(10)
+        for result in results:
+            result.delete()
 
         html = '<html><head><title>TweetSweepa</title><link type="text/css" rel="stylesheet" href="/static/style.css" /></head><body>'
         html = html + "<h4>***UNDER CONSTRUCTION***<br>"
@@ -644,7 +648,16 @@ class FrontPage(webapp.RequestHandler):
 
             htmlc = htmlc + '<div id="lexicon">'
             htmlc = htmlc + "<p>"+ str(page.which_user) + "'s Lexicon</p><br><p>"
-            
+
+
+            qqq = db.GqlQuery("SELECT * FROM Pair")
+            results = qqq.fetch(1000)
+
+            for result in results:
+
+                if result.which_user == users.get_current_user():
+                    htmlc = htmlc + str(result.word) + " " + str(result.tag) + "<br>"
+
             htmlc = htmlc + '</p></div>'
 
             htmlc = htmlc + '</body></html>'
@@ -655,13 +668,6 @@ class FrontPage(webapp.RequestHandler):
 
             page = tweetDB.Tag()
 
-            #fix RHS
-            page.newWord1 = "z"
-            page.newWord2 = "zz"
-            page.newWord3 = "zzz"
-            page.newWord4 = "zzzz"
-            page.newWord5 = "zzzzz"
-
             page.newTag1 = self.request.get('newTag1')
             page.newTag2 = self.request.get('newTag2')
             page.newTag3 = self.request.get('newTag3')
@@ -671,8 +677,69 @@ class FrontPage(webapp.RequestHandler):
             page.which_user = users.get_current_user()
             page.put()
 
+            #****************NEW
+            q = db.GqlQuery("SELECT * FROM Hack")
+            results = q.fetch(10)
+            for result in results:
+                searchString = result.textBox1
+                user = result.which_user
+
+            qq = db.GqlQuery("SELECT * FROM Tag")
+            results = qq.fetch(10)
+            for result in results:
+                tag1 = result.newTag1
+                tag2 = result.newTag2
+                tag3 = result.newTag3
+                tag4 = result.newTag4
+                tag5 = result.newTag5
+            
+            qqq = db.GqlQuery("SELECT * FROM NewWord")
+            results = qqq.fetch(10)
+            for result in results:
+                word1 = result.one
+                word2 = result.two
+                word3 = result.three
+                word4 = result.four
+                word5 = result.five
+
+            if tag1 != "":
+                pair1 = tweetDB.Pair()
+                pair1.word = word1
+                pair1.tag = tag1
+                pair1.which_user = user
+                pair1.put()
+
+            if tag2 != "":
+                pair2 = tweetDB.Pair()
+                pair2.word = word2
+                pair2.tag = tag2
+                pair2.which_user = user
+                pair2.put()
+
+            if tag3 != "":
+                pair3 = tweetDB.Pair()
+                pair3.word = word3
+                pair3.tag = tag3
+                pair3.which_user = user
+                pair3.put()
+
+            if tag4 != "":
+                pair4 = tweetDB.Pair()
+                pair4.word = word4
+                pair4.tag = tag4
+                pair4.which_user = user
+                pair4.put()
+
+            if tag5 != "":
+                pair5 = tweetDB.Pair()
+                pair5.word = word5
+                pair5.tag = tag5
+                pair5.which_user = user
+                pair5.put()
+
             htmlq = '<html><head><title>Results</title></head><body>'
-            htmlq = htmlq + '<p>The tags have been added to your lexicon! <a href="http://mznxbcv1029384756alskqpwo.appspot.com/">do it again</a></p>'
+            htmlq = htmlq + '<p>The tags have been added to your lexicon! '
+            htmlq = htmlq + '<a href="http://mznxbcv1029384756alskqpwo.appspot.com/">do it again</a></p>'
             htmlq = htmlq + '</body></html>'
 
             self.response.out.write(htmlq)

@@ -10,7 +10,6 @@ class Tag(db.Model):
     newTag3 = db.StringProperty()
     newTag4 = db.StringProperty()
     newTag5 = db.StringProperty()
-
     which_user = db.UserProperty()
 
 class NewWord(db.Model):
@@ -20,3 +19,7 @@ class NewWord(db.Model):
     three = db.StringProperty()
     four = db.StringProperty()
     five = db.StringProperty()
+
+class Pair(db.Model):
+    word = db.StringProperty()
+    tag = db.StringProperty()
