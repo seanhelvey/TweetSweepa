@@ -5,19 +5,18 @@ class Hack(db.Model):
     which_user = db.UserProperty()
 
 class Tag(db.Model):
-#    newWord1 = db.StringProperty()
     newTag1 = db.StringProperty()
-
-#    newWord2 = db.StringProperty()
     newTag2 = db.StringProperty()
-
-#    newWord3 = db.StringProperty()
     newTag3 = db.StringProperty()
-
-#    newWord4 = db.StringProperty()
     newTag4 = db.StringProperty()
-
-#    newWord5 = db.StringProperty()
     newTag5 = db.StringProperty()
 
     which_user = db.UserProperty()
+
+class NewWord(db.Model):
+    name = db.StringProperty()
+    one = db.StringProperty()
+    two = db.StringProperty()
+    three = db.StringProperty()
+    four = db.StringProperty()
+    five = db.StringProperty()

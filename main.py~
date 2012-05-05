@@ -120,7 +120,11 @@ class Hack(djangoforms.ModelForm):
 class Tag(djangoforms.ModelForm):
     class Meta:
         model = tweetDB.Tag
-        exclude = ['which_user','newWord1','newWord2','newWord3','newWord4','newWord5']
+        exclude = ['which_user']
+
+class NewWord(djangoforms.ModelForm):
+    class Meta:
+        model = tweetDB.NewWord
 
 def search(string,letter):
     n = 0
@@ -146,6 +150,16 @@ class FrontPage(webapp.RequestHandler):
         results = q.fetch(10)
         for result in results:
             result.delete()
+
+#        qq = db.GqlQuery("SELECT * FROM Tag")
+#        results = qq.fetch(10)
+#        for result in results:
+#            result.delete()
+
+#        qqq = db.GqlQuery("SELECT * FROM NewWord")
+#        results = qqq.fetch(10)
+#        for result in results:
+#            result.delete()
 
         html = '<html><head><title>TweetSweepa</title><link type="text/css" rel="stylesheet" href="/static/style.css" /></head><body>'
         html = html + "<h4>***UNDER CONSTRUCTION***<br>"
@@ -457,29 +471,8 @@ class FrontPage(webapp.RequestHandler):
                             sents = sentences()
                             sents.addSentence()
     
-                        #~~~~~~~~~NEWNEW~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                
-                        #search for @
-                        foundAtSign = search(word,"@")
-
-                        #search for #
-                        foundHashTag = search(word,"#")
-
-                        #search for #
-                        if "http" in word:
-                            foundLink = True
-
-                        #NEW***
-                        if foundAtSign or foundHashTag or foundLink:
-                            gram = bigram()
-                            gram.currentWord = theWord.lower()
-                            gram.currentTag = "SS"
-                            gram.finalProb = .0001
-                            sents.addWord(gram)
-                            gramDic[(gram.currentWord,gram.currentTag)] = gram
-
                         #BIG CHANGE HERE ********************************
-                        elif len(tags) >= 1:
+                        if len(tags) >= 1:
 
                             tagMax = 0
 
@@ -498,10 +491,6 @@ class FrontPage(webapp.RequestHandler):
 
                         else:
                                                         
-                            #from theWord to theWordy below
-                            if theWordy != "":
-                                oovList[theWordy] += 1
-
                             if len(tags) == 0:
                                 gram = bigram()
                                 gram.currentWord = theWordy
@@ -511,6 +500,31 @@ class FrontPage(webapp.RequestHandler):
                                 else:
                                     gram.currentTag = "NN"
                                 gram.finalProb = .0001
+
+                                #*****NEW
+                                #search for @
+                                foundAtSign = search(theWordy,"@")
+                                foundHashTag = search(theWordy,"#")
+
+                                if foundAtSign == True:
+                                    gram.currentTag = "@"
+
+                                #search for #
+                                elif foundHashTag == True:
+                                    gram.currentTag = "#"
+
+                                #search for #
+                                elif "http" in theWordy:
+                                    gram.currentTag = "http"
+
+                                #from theWord to theWordy below
+                                else:
+                                    if theWordy != "":
+                                        oovList[theWordy] += 1
+                                    else:
+                                        #dummy filler
+                                        y = 3
+
                                 gramDic[(gram.currentWord,gram.currentTag)] = gram
 
                             else:
@@ -541,6 +555,15 @@ class FrontPage(webapp.RequestHandler):
                             gram.nextTag = nextTag
                         nextTag = gram.currentTag
                         count += 1
+
+            newy = tweetDB.NewWord()
+            newy.one = "a"
+            newy.two = "b"
+            newy.three = "c"
+            newy.four = "d"
+            newy.five = "e"
+            newy.put()
+
 
             htmlc = '<html><head><title>Results</title><link type="text/css" rel="stylesheet" href="/static/style.css" /></head><body>'
 

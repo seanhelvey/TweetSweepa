@@ -120,7 +120,11 @@ class Hack(djangoforms.ModelForm):
 class Tag(djangoforms.ModelForm):
     class Meta:
         model = tweetDB.Tag
-        exclude = ['which_user','newWord1','newWord2','newWord3','newWord4','newWord5']
+        exclude = ['which_user']
+
+class NewWord(djangoforms.ModelForm):
+    class Meta:
+        model = tweetDB.NewWord
 
 def search(string,letter):
     n = 0
@@ -146,6 +150,16 @@ class FrontPage(webapp.RequestHandler):
         results = q.fetch(10)
         for result in results:
             result.delete()
+
+#        qq = db.GqlQuery("SELECT * FROM Tag")
+#        results = qq.fetch(10)
+#        for result in results:
+#            result.delete()
+
+#        qqq = db.GqlQuery("SELECT * FROM NewWord")
+#        results = qqq.fetch(10)
+#        for result in results:
+#            result.delete()
 
         html = '<html><head><title>TweetSweepa</title><link type="text/css" rel="stylesheet" href="/static/style.css" /></head><body>'
         html = html + "<h4>***UNDER CONSTRUCTION***<br>"
@@ -584,6 +598,14 @@ class FrontPage(webapp.RequestHandler):
             sortedList = sorted(oovList.items(), key=itemgetter(1))
             last5 = sortedList[-5:]
             last5.reverse()
+
+            newy = tweetDB.NewWord()
+            newy.one = last5[0][0]
+            newy.two = last5[1][0]
+            newy.three = last5[2][0]
+            newy.four = last5[3][0]
+            newy.five = last5[4][0]
+            newy.put()
 
             htmlc = htmlc + '<div id="top">'
             htmlc = htmlc + "<p>Active Learning / Domain Adaptation<br>"
