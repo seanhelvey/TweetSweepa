@@ -444,6 +444,7 @@ class FrontPage(webapp.RequestHandler):
                 if len(wordss) > 0:
 
                     for theWord in wordss:
+
                         if theWord != "COMMA":
                             theWordy = theWord.lower()
                         else:
@@ -475,11 +476,7 @@ class FrontPage(webapp.RequestHandler):
                                     sents.addWord(gram)
 
                         else:
-                                
-                            #from theWord to theWordy below
-                            if theWordy != "":
-                                oovList[theWordy] += 1
-
+                                                        
                             if len(tags) == 0:
                                 gram = bigram()
                                 gram.currentWord = theWordy
@@ -489,6 +486,31 @@ class FrontPage(webapp.RequestHandler):
                                 else:
                                     gram.currentTag = "NN"
                                 gram.finalProb = .0001
+
+                                #*****NEW
+                                #search for @
+                                foundAtSign = search(theWordy,"@")
+                                foundHashTag = search(theWordy,"#")
+
+                                if foundAtSign == True:
+                                    gram.currentTag = "@"
+
+                                #search for #
+                                elif foundHashTag == True:
+                                    gram.currentTag = "#"
+
+                                #search for #
+                                elif "http" in theWordy:
+                                    gram.currentTag = "http"
+
+                                #from theWord to theWordy below
+                                else:
+                                    if theWordy != "":
+                                        oovList[theWordy] += 1
+                                    else:
+                                        #dummy filler
+                                        y = 3
+
                                 gramDic[(gram.currentWord,gram.currentTag)] = gram
 
                             else:

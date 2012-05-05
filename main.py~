@@ -423,11 +423,11 @@ class FrontPage(webapp.RequestHandler):
 
             #----------------------------------------------
 
-        #-BEG-NLP--------------------------------------------------------------------
-        
-        #SECOND PASS~~~~~~~~
-        #Building up lists of possible word combinations or "sentences"
-        #Computing likelihood of each tag sequence
+            #-BEG-NLP--------------------------------------------------------------------
+         
+            #SECOND PASS~~~~~~~~
+            #Building up lists of possible word combinations or "sentences"
+            #Computing likelihood of each tag sequence
 
             file=open(developmentFile,'r')
 
@@ -444,6 +444,7 @@ class FrontPage(webapp.RequestHandler):
                 if len(wordss) > 0:
 
                     for theWord in wordss:
+
                         if theWord != "COMMA":
                             theWordy = theWord.lower()
                         else:
@@ -456,8 +457,29 @@ class FrontPage(webapp.RequestHandler):
                             sents = sentences()
                             sents.addSentence()
     
+                        #~~~~~~~~~NEWNEW~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                
+                        #search for @
+                        foundAtSign = search(word,"@")
+
+                        #search for #
+                        foundHashTag = search(word,"#")
+
+                        #search for #
+                        if "http" in word:
+                            foundLink = True
+
+                        #NEW***
+                        if foundAtSign or foundHashTag or foundLink:
+                            gram = bigram()
+                            gram.currentWord = theWord.lower()
+                            gram.currentTag = "SS"
+                            gram.finalProb = .0001
+                            sents.addWord(gram)
+                            gramDic[(gram.currentWord,gram.currentTag)] = gram
+
                         #BIG CHANGE HERE ********************************
-                        if len(tags) >= 1:
+                        elif len(tags) >= 1:
 
                             tagMax = 0
 
@@ -475,7 +497,7 @@ class FrontPage(webapp.RequestHandler):
                                     sents.addWord(gram)
 
                         else:
-                                
+                                                        
                             #from theWord to theWordy below
                             if theWordy != "":
                                 oovList[theWordy] += 1
@@ -534,13 +556,6 @@ class FrontPage(webapp.RequestHandler):
                 for sent in sents.list:
                     if sent.score == sents.sentsMax and num == 0:
                     
-#                        htmlc = htmlc + '<span class="sentence">'
-#                        for gram in sent.bigrams:
-#                            htmlc = htmlc + gram.currentWord + " "
-#                        htmlc = htmlc + '</span>'
-
-#                        htmlc = htmlc + "<br><br>"
-                   
                         priorGramTag = ""
 
                         x = 0
@@ -618,7 +633,7 @@ class FrontPage(webapp.RequestHandler):
 
             page = tweetDB.Tag()
 
-#            fix RHS
+            #fix RHS
             page.newWord1 = "z"
             page.newWord2 = "zz"
             page.newWord3 = "zzz"
