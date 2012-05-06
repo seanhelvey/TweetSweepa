@@ -130,6 +130,10 @@ class Pair(djangoforms.ModelForm):
     class Meta:
         model = tweetDB.Pair
 
+class Record(djangoforms.ModelForm):
+    class Meta:
+        model = tweetDB.Pair
+
 def search(string,letter):
     n = 0
     for i in range (len(string)):
@@ -147,23 +151,24 @@ def urlFun(self, url):
         self.response.out.write(htmlw)
 
 numWords = 0
+score = 0
 
 class FrontPage(webapp.RequestHandler):
 
     def get(self):
 
         q = db.GqlQuery("SELECT * FROM Hack")
-        results = q.fetch(10)
+        results = q.fetch(3)
         for result in results:
             result.delete()
 
         qq = db.GqlQuery("SELECT * FROM Tag")
-        results = qq.fetch(10)
+        results = qq.fetch(3)
         for result in results:
             result.delete()
 
         qqq = db.GqlQuery("SELECT * FROM NewWord")
-        results = qqq.fetch(10)
+        results = qqq.fetch(3)
         for result in results:
             result.delete()
 
@@ -326,7 +331,7 @@ class FrontPage(webapp.RequestHandler):
             #-END-NLP----------------------------------------------------------------------------
     
             a = db.GqlQuery("SELECT * FROM Hack")
-            results = a.fetch(10)
+            results = a.fetch(3)
 
             for result in results:
                 var1 = result.textBox1
@@ -460,6 +465,10 @@ class FrontPage(webapp.RequestHandler):
             theLastTag = ''
             oovList = collections.defaultdict(int)
 
+            qqq = db.GqlQuery("SELECT * FROM Pair")
+            results = qqq.fetch(80)
+            lexicon = collections.defaultdict(str)
+
             for wordss in listola:
 
                 currentTag = ''
@@ -514,11 +523,6 @@ class FrontPage(webapp.RequestHandler):
                                 #search for @
                                 foundAtSign = search(theWordy,"@")
                                 foundHashTag = search(theWordy,"#")
-
-
-                                qqq = db.GqlQuery("SELECT * FROM Pair")
-                                results = qqq.fetch(1000)
-                                lexicon = collections.defaultdict(str)
                                 
                                 for result in results:
                                     if result.which_user == users.get_current_user():
@@ -626,14 +630,6 @@ class FrontPage(webapp.RequestHandler):
             last5 = sortedList[-5:]
             last5.reverse()
 
-            newy = tweetDB.NewWord()
-            newy.one = last5[0][0]
-            newy.two = last5[1][0]
-            newy.three = last5[2][0]
-            newy.four = last5[3][0]
-            newy.five = last5[4][0]
-            newy.put()
-
             htmlc = htmlc + '<div id="top">'
             htmlc = htmlc + "<p>Active Learning / Domain Adaptation<br>"
             htmlc = htmlc + "The 5 most frequent oov words:<br></p>"
@@ -672,17 +668,35 @@ class FrontPage(webapp.RequestHandler):
                 num += 1
 
             global numWords
-            htmlc = htmlc + str(numWords-num) + " / " + str(numWords) + " = " + str(round((numWords-num)/float(numWords),2)*100) + "%"
+            global score
+            score = round((numWords-num)/float(numWords),2)*100
+            htmlc = htmlc + str(numWords-num) + " / " + str(numWords) + " = " + str(score) + "%"
+
+            newy = tweetDB.NewWord()
+            newy.one = last5[0][0]
+            newy.two = last5[1][0]
+            newy.three = last5[2][0]
+            newy.four = last5[3][0]
+            newy.five = last5[4][0]
+            newy.score = score
+            newy.put()
 
             htmlc = htmlc + '</div>'
+
+
+            #READING RECORDS HERE ***************
+            
+            #ADDDDD
+            
+            #***********************************
 
             htmlc = htmlc + '</div>'
 
             htmlc = htmlc + '<div id="lexicon">'
             htmlc = htmlc + "<p>"+ str(page.which_user) + "'s Lexicon</p><br><p>"
 
-            qqq = db.GqlQuery("SELECT * FROM Pair")
-            results = qqq.fetch(1000)
+#            qqq = db.GqlQuery("SELECT * FROM Pair")
+#            results = qqq.fetch(50)
 
             for result in results:
 
@@ -710,13 +724,14 @@ class FrontPage(webapp.RequestHandler):
 
             #****************NEW
             q = db.GqlQuery("SELECT * FROM Hack")
-            results = q.fetch(10)
-            for result in results:
-                searchString = result.textBox1
-                user = result.which_user
+            resultsX = q.fetch(3)
+            for resultX in resultsX:
+                searchString = resultX.textBox1
+                user = resultX.which_user
+                score = resultX.score
 
             qq = db.GqlQuery("SELECT * FROM Tag")
-            results = qq.fetch(10)
+            results = qq.fetch(3)
             for result in results:
                 tag1 = result.newTag1
                 tag2 = result.newTag2
@@ -725,7 +740,7 @@ class FrontPage(webapp.RequestHandler):
                 tag5 = result.newTag5
             
             qqq = db.GqlQuery("SELECT * FROM NewWord")
-            results = qqq.fetch(10)
+            results = qqq.fetch(3)
             for result in results:
                 word1 = result.one
                 word2 = result.two
@@ -767,6 +782,19 @@ class FrontPage(webapp.RequestHandler):
                 pair5.tag = tag5
                 pair5.which_user = user
                 pair5.put()
+
+            #WRITING RECORDS HERE ***************
+                
+            wreck = tweetDB.Record()
+            wreck.which_user = user
+            wreck.word = searchString
+
+            global score
+            wreck.score = str(score)
+
+            wreck.put()
+            
+            #***********************************
 
             htmlq = '<html><head><title>Results</title></head><body>'
             htmlq = htmlq + '<p>The tags have been added to your lexicon! '

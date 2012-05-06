@@ -3,6 +3,7 @@ from google.appengine.ext import db
 class Hack(db.Model):
     textBox1 = db.StringProperty()
     which_user = db.UserProperty()
+    score = db.StringProperty()
 
 class Tag(db.Model):
     newTag1 = db.StringProperty()
@@ -23,3 +24,9 @@ class NewWord(db.Model):
 class Pair(db.Model):
     word = db.StringProperty()
     tag = db.StringProperty()
+    which_user = db.UserProperty()
+
+class Record(db.Model):
+    score = db.StringProperty()
+    word = db.StringProperty()
+    which_user = db.UserProperty()    
