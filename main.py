@@ -146,22 +146,24 @@ def urlFun(self, url):
         htmlw = "<html><head><title>error</title></head><body>" + str(e) + "</body></html>"
         self.response.out.write(htmlw)
 
+numWords = 0
+
 class FrontPage(webapp.RequestHandler):
 
     def get(self):
 
         q = db.GqlQuery("SELECT * FROM Hack")
-        results = q.fetch(10)
+        results = q.fetch(3)
         for result in results:
             result.delete()
 
         qq = db.GqlQuery("SELECT * FROM Tag")
-        results = qq.fetch(10)
+        results = qq.fetch(3)
         for result in results:
             result.delete()
 
         qqq = db.GqlQuery("SELECT * FROM NewWord")
-        results = qqq.fetch(10)
+        results = qqq.fetch(3)
         for result in results:
             result.delete()
 
@@ -324,7 +326,7 @@ class FrontPage(webapp.RequestHandler):
             #-END-NLP----------------------------------------------------------------------------
     
             a = db.GqlQuery("SELECT * FROM Hack")
-            results = a.fetch(10)
+            results = a.fetch(3)
 
             for result in results:
                 var1 = result.textBox1
@@ -332,13 +334,13 @@ class FrontPage(webapp.RequestHandler):
                 splitted = var1.split(" ")
                 z = len(var1.split(" "))
                 if z == 1:
-                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '&rpp=30&include_entities=true&result_type=mixed&lang=en'
+                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '&rpp=80&include_entities=true&result_type=mixed&lang=en'
 
                 elif z == 2:
-                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '%20' + splitted[1] + '&rpp=30&include_entities=true&result_type=mixed&lang=en'                 
+                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '%20' + splitted[1] + '&rpp=80&include_entities=true&result_type=mixed&lang=en'                 
 
                 else:
-                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '%20' + splitted[1] + '%20' + splitted[2] + '&rpp=30&include_entities=true&result_type=mixed&lang=en' 
+                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '%20' + splitted[1] + '%20' + splitted[2] + '&rpp=80&include_entities=true&result_type=mixed&lang=en' 
 
             textile = ""
             dd = ""
@@ -378,6 +380,9 @@ class FrontPage(webapp.RequestHandler):
                 #----------MODS--------------------------------
                 sublist = []
                 for word in words:
+
+                    global numWords
+                    numWords += 1
 
                    #~~~~~~~~~NEWNEW~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                 
@@ -455,6 +460,10 @@ class FrontPage(webapp.RequestHandler):
             theLastTag = ''
             oovList = collections.defaultdict(int)
 
+            qqq = db.GqlQuery("SELECT * FROM Pair")
+            results = qqq.fetch(50)
+            lexicon = collections.defaultdict(str)
+
             for wordss in listola:
 
                 currentTag = ''
@@ -509,6 +518,10 @@ class FrontPage(webapp.RequestHandler):
                                 #search for @
                                 foundAtSign = search(theWordy,"@")
                                 foundHashTag = search(theWordy,"#")
+                                
+                                for result in results:
+                                    if result.which_user == users.get_current_user():
+                                        lexicon[result.word] = result.tag
 
                                 if foundAtSign == True:
                                     gram.currentTag = "@"
@@ -524,7 +537,16 @@ class FrontPage(webapp.RequestHandler):
                                 #from theWord to theWordy below
                                 else:
                                     if theWordy != "":
-                                        oovList[theWordy] += 1
+
+                                        if theWordy in lexicon:
+                                            
+                                            #dummy filler
+                                            z = 7
+                                            gram.currentTag = lexicon[theWordy]
+                                        
+                                        else:
+                                            oovList[theWordy] += 1
+
                                     else:
                                         #dummy filler
                                         y = 3
@@ -641,7 +663,16 @@ class FrontPage(webapp.RequestHandler):
             htmlc = htmlc + '<form method="POST" action="/">'
             htmlc = htmlc + '<p>' + str(Tag(auto_id=False))
             htmlc = htmlc + '<input type="submit" name="Submit" value="Submit"></p>'
-            htmlc = htmlc + '</form>'
+            htmlc = htmlc + '</form><br>'
+            htmlc = htmlc + "PERCENTAGE IN VOCABULARY:"
+
+            num = 0
+            for oov in oovList:
+                num += 1
+
+            global numWords
+            htmlc = htmlc + str(numWords-num) + " / " + str(numWords) + " = " + str(round((numWords-num)/float(numWords),2)*100) + "%"
+
             htmlc = htmlc + '</div>'
 
             htmlc = htmlc + '</div>'
@@ -649,9 +680,8 @@ class FrontPage(webapp.RequestHandler):
             htmlc = htmlc + '<div id="lexicon">'
             htmlc = htmlc + "<p>"+ str(page.which_user) + "'s Lexicon</p><br><p>"
 
-
-            qqq = db.GqlQuery("SELECT * FROM Pair")
-            results = qqq.fetch(1000)
+#            qqq = db.GqlQuery("SELECT * FROM Pair")
+#            results = qqq.fetch(50)
 
             for result in results:
 
@@ -679,13 +709,13 @@ class FrontPage(webapp.RequestHandler):
 
             #****************NEW
             q = db.GqlQuery("SELECT * FROM Hack")
-            results = q.fetch(10)
+            results = q.fetch(3)
             for result in results:
                 searchString = result.textBox1
                 user = result.which_user
 
             qq = db.GqlQuery("SELECT * FROM Tag")
-            results = qq.fetch(10)
+            results = qq.fetch(3)
             for result in results:
                 tag1 = result.newTag1
                 tag2 = result.newTag2
@@ -694,7 +724,7 @@ class FrontPage(webapp.RequestHandler):
                 tag5 = result.newTag5
             
             qqq = db.GqlQuery("SELECT * FROM NewWord")
-            results = qqq.fetch(10)
+            results = qqq.fetch(3)
             for result in results:
                 word1 = result.one
                 word2 = result.two

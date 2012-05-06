@@ -146,6 +146,8 @@ def urlFun(self, url):
         htmlw = "<html><head><title>error</title></head><body>" + str(e) + "</body></html>"
         self.response.out.write(htmlw)
 
+numWords = 0
+
 class FrontPage(webapp.RequestHandler):
 
     def get(self):
@@ -332,13 +334,13 @@ class FrontPage(webapp.RequestHandler):
                 splitted = var1.split(" ")
                 z = len(var1.split(" "))
                 if z == 1:
-                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '&rpp=30&include_entities=true&result_type=mixed&lang=en'
+                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '&rpp=80&include_entities=true&result_type=mixed&lang=en'
 
                 elif z == 2:
-                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '%20' + splitted[1] + '&rpp=30&include_entities=true&result_type=mixed&lang=en'                 
+                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '%20' + splitted[1] + '&rpp=80&include_entities=true&result_type=mixed&lang=en'                 
 
                 else:
-                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '%20' + splitted[1] + '%20' + splitted[2] + '&rpp=30&include_entities=true&result_type=mixed&lang=en' 
+                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '%20' + splitted[1] + '%20' + splitted[2] + '&rpp=80&include_entities=true&result_type=mixed&lang=en' 
 
             textile = ""
             dd = ""
@@ -378,6 +380,9 @@ class FrontPage(webapp.RequestHandler):
                 #----------MODS--------------------------------
                 sublist = []
                 for word in words:
+
+                    global numWords
+                    numWords += 1
 
                    #~~~~~~~~~NEWNEW~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                 
@@ -510,6 +515,15 @@ class FrontPage(webapp.RequestHandler):
                                 foundAtSign = search(theWordy,"@")
                                 foundHashTag = search(theWordy,"#")
 
+
+                                qqq = db.GqlQuery("SELECT * FROM Pair")
+                                results = qqq.fetch(1000)
+                                lexicon = collections.defaultdict(str)
+                                
+                                for result in results:
+                                    if result.which_user == users.get_current_user():
+                                        lexicon[result.word] = result.tag
+
                                 if foundAtSign == True:
                                     gram.currentTag = "@"
 
@@ -524,7 +538,16 @@ class FrontPage(webapp.RequestHandler):
                                 #from theWord to theWordy below
                                 else:
                                     if theWordy != "":
-                                        oovList[theWordy] += 1
+
+                                        if theWordy in lexicon:
+                                            
+                                            #dummy filler
+                                            z = 7
+                                            gram.currentTag = lexicon[theWordy]
+                                        
+                                        else:
+                                            oovList[theWordy] += 1
+
                                     else:
                                         #dummy filler
                                         y = 3
@@ -641,7 +664,16 @@ class FrontPage(webapp.RequestHandler):
             htmlc = htmlc + '<form method="POST" action="/">'
             htmlc = htmlc + '<p>' + str(Tag(auto_id=False))
             htmlc = htmlc + '<input type="submit" name="Submit" value="Submit"></p>'
-            htmlc = htmlc + '</form>'
+            htmlc = htmlc + '</form><br>'
+            htmlc = htmlc + "PERCENTAGE IN VOCABULARY:"
+
+            num = 0
+            for oov in oovList:
+                num += 1
+
+            global numWords
+            htmlc = htmlc + str(numWords-num) + " / " + str(numWords) + " = " + str(round((numWords-num)/float(numWords),2)*100) + "%"
+
             htmlc = htmlc + '</div>'
 
             htmlc = htmlc + '</div>'
@@ -649,15 +681,13 @@ class FrontPage(webapp.RequestHandler):
             htmlc = htmlc + '<div id="lexicon">'
             htmlc = htmlc + "<p>"+ str(page.which_user) + "'s Lexicon</p><br><p>"
 
-
             qqq = db.GqlQuery("SELECT * FROM Pair")
-            results = qqq.fetch(100)
-
-            #htmlc = htmlc + str(results)
+            results = qqq.fetch(1000)
 
             for result in results:
-                htmlc = htmlc + str(result.word) + " " + str(result.tag) + "<br>"
 
+                if result.which_user == users.get_current_user():
+                    htmlc = htmlc + str(result.word) + " " + str(result.tag) + "<br>"
 
             htmlc = htmlc + '</p></div>'
 
@@ -683,6 +713,7 @@ class FrontPage(webapp.RequestHandler):
             results = q.fetch(10)
             for result in results:
                 searchString = result.textBox1
+                user = result.which_user
 
             qq = db.GqlQuery("SELECT * FROM Tag")
             results = qq.fetch(10)
@@ -706,30 +737,35 @@ class FrontPage(webapp.RequestHandler):
                 pair1 = tweetDB.Pair()
                 pair1.word = word1
                 pair1.tag = tag1
+                pair1.which_user = user
                 pair1.put()
 
             if tag2 != "":
                 pair2 = tweetDB.Pair()
                 pair2.word = word2
                 pair2.tag = tag2
+                pair2.which_user = user
                 pair2.put()
 
             if tag3 != "":
                 pair3 = tweetDB.Pair()
                 pair3.word = word3
                 pair3.tag = tag3
+                pair3.which_user = user
                 pair3.put()
 
             if tag4 != "":
                 pair4 = tweetDB.Pair()
                 pair4.word = word4
                 pair4.tag = tag4
+                pair4.which_user = user
                 pair4.put()
 
             if tag5 != "":
                 pair5 = tweetDB.Pair()
                 pair5.word = word5
                 pair5.tag = tag5
+                pair5.which_user = user
                 pair5.put()
 
             htmlq = '<html><head><title>Results</title></head><body>'
