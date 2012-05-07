@@ -151,6 +151,7 @@ def urlFun(self, url):
         self.response.out.write(htmlw)
 
 numWords = 0
+globalUser = ""
 
 class FrontPage(webapp.RequestHandler):
 
@@ -796,6 +797,10 @@ class FrontPage(webapp.RequestHandler):
                 
             wreck = tweetDB.Record()
             wreck.which_user = user
+            
+            global globalUser
+            globalUser = str(user)
+
             wreck.word = searchString
 
             wreck.score = str(score)
@@ -814,7 +819,29 @@ class FrontPage(webapp.RequestHandler):
         else:
             
             #clear records
+            ux = users.get_current_user()
+#            global globalUser
+#            ux = globalUser
+            
+            #stringaling = "SELECT * FROM Record WHERE which_user = " + str(ux)
+            #q = db.GqlQuery(stringaling)
+            
+            q = db.GqlQuery("SELECT * FROM Record WHERE which_user = :1", users.get_current_user())
+
+            results = q.fetch(80)
+            for result in results:
+                result.delete()
+            
             #clear lexicon
+            
+            #stringaling = "SELECT * FROM Pair WHERE which_user = " + str(ux)
+            #q = db.GqlQuery(stringaling)
+            
+            q = db.GqlQuery("SELECT * FROM Pair WHERE which_user = :1", users.get_current_user())
+            
+            results = q.fetch(80)
+            for result in results:
+                result.delete()
 
             htmlq = '<html><head><title>Clear</title></head><body>'
             htmlq = htmlq + '<p>Your score record and lexicon have now been cleared! '
