@@ -151,7 +151,6 @@ def urlFun(self, url):
         self.response.out.write(htmlw)
 
 numWords = 0
-score = 0
 
 class FrontPage(webapp.RequestHandler):
 
@@ -668,8 +667,7 @@ class FrontPage(webapp.RequestHandler):
                 num += 1
 
             global numWords
-            global score
-            score = round((numWords-num)/float(numWords),2)*100
+            score = round((numWords-num)/float(numWords),4)*100
             htmlc = htmlc + str(numWords-num) + " / " + str(numWords) + " = " + str(score) + "%"
 
             newy = tweetDB.NewWord()
@@ -678,17 +676,22 @@ class FrontPage(webapp.RequestHandler):
             newy.three = last5[2][0]
             newy.four = last5[3][0]
             newy.five = last5[4][0]
-            newy.score = score
+            newy.score = str(score)
             newy.put()
-
-            htmlc = htmlc + '</div>'
-
 
             #READING RECORDS HERE ***************
             
-            #ADDDDD
+            zzzz = db.GqlQuery("SELECT * FROM Record")
+            records = zzzz.fetch(10)
+
+            htmlc = htmlc + "<br><br>"
+            htmlc = htmlc + "PREVIOUS SCORES:<br>"
+            for record in records:
+                htmlc = htmlc + record.word + " " + record.score + "<br>"
             
             #***********************************
+
+            htmlc = htmlc + '</div>'
 
             htmlc = htmlc + '</div>'
 
@@ -728,7 +731,6 @@ class FrontPage(webapp.RequestHandler):
             for resultX in resultsX:
                 searchString = resultX.textBox1
                 user = resultX.which_user
-                score = resultX.score
 
             qq = db.GqlQuery("SELECT * FROM Tag")
             results = qq.fetch(3)
@@ -747,6 +749,7 @@ class FrontPage(webapp.RequestHandler):
                 word3 = result.three
                 word4 = result.four
                 word5 = result.five
+                score = result.score
 
             if tag1 != "":
                 pair1 = tweetDB.Pair()
@@ -789,7 +792,6 @@ class FrontPage(webapp.RequestHandler):
             wreck.which_user = user
             wreck.word = searchString
 
-            global score
             wreck.score = str(score)
 
             wreck.put()

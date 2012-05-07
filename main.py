@@ -180,11 +180,18 @@ class FrontPage(webapp.RequestHandler):
         html = html + '<p>' + str(Hack(auto_id=False))
         html = html + '<input type="submit" name="sub_title" value="Submit2">'        
         html = html + '</p></form>'
-        html = html + '</div>'
+        html = html + '</div><br><br>'
+        html = html + 'To clear your user information, click the button below.<br>'
+        html = html + 'This will remove your score record and refresh your lexicon.<br>'
+        html = html + '<form method="POST" action="/">'
+        html = html + '<input type="submit" name="sub_title" value="Clear">'
         html = html + '</body></html>'
         self.response.out.write(html)
 
     def post(self):
+
+        q = db.GqlQuery("SELECT * FROM Hack")
+        testResults = q.fetch(1)
 
         #CONTROL HERE 
         #first post / second post
@@ -587,7 +594,6 @@ class FrontPage(webapp.RequestHandler):
                         count += 1
 
             htmlc = '<html><head><title>Results</title><link type="text/css" rel="stylesheet" href="/static/style.css" /></head><body>'
-
             htmlc = htmlc + '<div id="left">'
             htmlc = htmlc + "<p>POS Tags - Out Of Vocabulary (OOV) in <span class='highlight'>red<span></p><br>"
 
@@ -712,8 +718,8 @@ class FrontPage(webapp.RequestHandler):
 
             self.response.out.write(htmlc)
 
-        else:
-
+        #else:
+        elif self.request.get('textBox1') == "" and len(testResults) > 0:
             page = tweetDB.Tag()
 
             page.newTag1 = self.request.get('newTag1')
@@ -805,6 +811,18 @@ class FrontPage(webapp.RequestHandler):
 
             self.response.out.write(htmlq)
 
+        else:
+            
+            #clear records
+            #clear lexicon
+
+            htmlq = '<html><head><title>Clear</title></head><body>'
+            htmlq = htmlq + '<p>Your score record and lexicon have now been cleared! '
+            htmlq = htmlq + '<a href="http://mznxbcv1029384756alskqpwo.appspot.com/">back to homepage</a></p>'
+            htmlq = htmlq + '</body></html>'
+            
+            self.response.out.write(htmlq)
+            
 #~~~~~~~~~NEWNEW~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         
 class ResultsPage(webapp.RequestHandler):    
@@ -818,7 +836,16 @@ class ResultsPage(webapp.RequestHandler):
 
         #-END-NLP--------------------------------------------------------------------
 
-application = webapp.WSGIApplication([('/', FrontPage),('/results',ResultsPage)],debug=True)
+class ClearPage(webapp.RequestHandler):    
+    def get(self):
+
+        htmlr = '<html><head><title>Clear</title></head><body>'
+        htmlr = htmlr + '<p><a href="/">Your score record and lexicon have been cleared.</a></p>'
+        htmlr = htmlr + '</body></html>'
+
+        self.response.out.write(htmlr)
+
+application = webapp.WSGIApplication([('/', FrontPage),('/results',ResultsPage),('/clear',ClearPage)],debug=True)
 
 def main():
     util.run_wsgi_app(application)
