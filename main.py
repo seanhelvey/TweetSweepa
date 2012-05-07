@@ -173,7 +173,8 @@ class FrontPage(webapp.RequestHandler):
             result.delete()
 
         html = '<html><head><title>TweetSweepa</title><link type="text/css" rel="stylesheet" href="/static/style.css" /></head><body>'
-        html = html + "<h4>***UNDER CONSTRUCTION***<br>"
+        u = users.get_current_user()
+        html = html + "<h4>Hello " + str(u) + "<br>"
         html = html + "Welcome to the TweetSweepa!<br>"
         html = html + "Search for the following words:</h4>"
         html = html + '<div id="wrapper">'
@@ -687,9 +688,9 @@ class FrontPage(webapp.RequestHandler):
             newy.put()
 
             #READING RECORDS HERE ***************
-            
-            zzzz = db.GqlQuery("SELECT * FROM Record")
-            records = zzzz.fetch(10)
+            zzzz = db.GqlQuery("SELECT * FROM Record WHERE which_user = :1", users.get_current_user())            
+            #zzzz = db.GqlQuery("SELECT * FROM Record")
+            records = zzzz.fetch(80)
 
             htmlc = htmlc + "<br><br>"
             htmlc = htmlc + "PREVIOUS SCORES:<br>"
@@ -734,13 +735,13 @@ class FrontPage(webapp.RequestHandler):
 
             #****************NEW
             q = db.GqlQuery("SELECT * FROM Hack")
-            resultsX = q.fetch(3)
+            resultsX = q.fetch(1)
             for resultX in resultsX:
                 searchString = resultX.textBox1
                 user = resultX.which_user
 
             qq = db.GqlQuery("SELECT * FROM Tag")
-            results = qq.fetch(3)
+            results = qq.fetch(1)
             for result in results:
                 tag1 = result.newTag1
                 tag2 = result.newTag2
@@ -749,7 +750,7 @@ class FrontPage(webapp.RequestHandler):
                 tag5 = result.newTag5
             
             qqq = db.GqlQuery("SELECT * FROM NewWord")
-            results = qqq.fetch(3)
+            results = qqq.fetch(1)
             for result in results:
                 word1 = result.one
                 word2 = result.two
