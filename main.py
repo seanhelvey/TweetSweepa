@@ -20,7 +20,7 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.ext import db
 from google.appengine.ext.webapp import template
 from google.appengine.api import users
-from google.appengine.ext.db import djangoforms
+from wtforms.ext.appengine.db import model_form
 import collections
 import urllib2
 from urllib2 import Request, urlopen, HTTPError
@@ -112,25 +112,25 @@ class sentence(object):
 
 #-END-NLP--------------------------------------------------------------------------
 
-class Hack(djangoforms.ModelForm):
+class Hack(model_form):
     class Meta:
         model = tweetDB.Hack
         exclude = ['which_user']
 
-class Tag(djangoforms.ModelForm):
+class Tag(model_form):
     class Meta:
         model = tweetDB.Tag
         exclude = ['which_user']
 
-class NewWord(djangoforms.ModelForm):
+class NewWord(model_form):
     class Meta:
         model = tweetDB.NewWord
 
-class Pair(djangoforms.ModelForm):
+class Pair(model_form):
     class Meta:
         model = tweetDB.Pair
 
-class Record(djangoforms.ModelForm):
+class Record(model_form):
     class Meta:
         model = tweetDB.Pair
 
