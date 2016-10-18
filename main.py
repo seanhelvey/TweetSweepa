@@ -347,13 +347,13 @@ class FrontPage(webapp.RequestHandler):
                 splitted = var1.split(" ")
                 z = len(var1.split(" "))
                 if z == 1:
-                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '&rpp=80&include_entities=true&result_type=mixed&lang=en'
+                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '&rpp=10&include_entities=true&result_type=mixed&lang=en'
 
                 elif z == 2:
-                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '%20' + splitted[1] + '&rpp=80&include_entities=true&result_type=mixed&lang=en'                 
+                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '%20' + splitted[1] + '&rpp=10&include_entities=true&result_type=mixed&lang=en'                 
 
                 else:
-                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '%20' + splitted[1] + '%20' + splitted[2] + '&rpp=80&include_entities=true&result_type=mixed&lang=en' 
+                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '%20' + splitted[1] + '%20' + splitted[2] + '&rpp=10&include_entities=true&result_type=mixed&lang=en' 
 
             textile = ""
             dd = ""
