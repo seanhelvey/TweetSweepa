@@ -14,11 +14,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from google.appengine.ext import webapp
-from google.appengine.ext.webapp import util
-from google.appengine.ext.webapp.util import run_wsgi_app
+import sys
+sys.path.insert(0, 'lib')
+reload(sys)
+sys.setdefaultencoding('utf8')
+
+import webapp2
+# from google.appengine.ext.webapp import util
+# from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.ext import db
-from google.appengine.ext.webapp import template
+# from google.appengine.ext.webapp2 import template
 from google.appengine.api import users
 from wtforms.ext.appengine.db import model_form
 import collections
@@ -27,13 +32,16 @@ from urllib2 import Request, urlopen, HTTPError
 import tweetDB
 import cgitb
 cgitb.enable()
-import sys
+import json
 
 from operator import itemgetter
 
 #-BEG-NLP--------------------------------------------------------------------------
 
 import copy
+
+numWords = 0
+globalUser = ""
 
 trainingFile = "trainy.np"
 developmentFile = "d.np"
@@ -112,25 +120,35 @@ class sentence(object):
 
 #-END-NLP--------------------------------------------------------------------------
 
-class Hack(model_form):
+HackForm = model_form(tweetDB.Hack)
+
+class Hack(HackForm):
     class Meta:
         model = tweetDB.Hack
         exclude = ['which_user']
 
-class Tag(model_form):
+TagForm = model_form(tweetDB.Tag)
+
+class Tag(TagForm):
     class Meta:
         model = tweetDB.Tag
         exclude = ['which_user']
 
-class NewWord(model_form):
+WordForm = model_form(tweetDB.NewWord)
+
+class NewWord(WordForm):
     class Meta:
         model = tweetDB.NewWord
 
-class Pair(model_form):
+PairForm = model_form(tweetDB.Pair)
+
+class Pair(PairForm):
     class Meta:
         model = tweetDB.Pair
 
-class Record(model_form):
+RecordForm = model_form(tweetDB.Pair)
+
+class Record(RecordForm):
     class Meta:
         model = tweetDB.Pair
 
@@ -150,10 +168,7 @@ def urlFun(self, url):
         htmlw = "<html><head><title>error</title></head><body>" + str(e) + "</body></html>"
         self.response.out.write(htmlw)
 
-numWords = 0
-globalUser = ""
-
-class FrontPage(webapp.RequestHandler):
+class FrontPage(webapp2.RequestHandler):
 
     def get(self):
 
@@ -179,7 +194,7 @@ class FrontPage(webapp.RequestHandler):
         html = html + "Search for the following words:</h4>"
         html = html + '<div id="wrapper">'
         html = html + '<form method="POST" action="/">'
-        html = html + '<p>' + str(Hack(auto_id=False))
+        html = html + '<p>' + str(Hack(auto_id=False).textBox1)
         html = html + '<input type="submit" name="sub_title" value="Submit2">'        
         html = html + '</p></form>'
         html = html + '</div><br><br>'
@@ -347,13 +362,14 @@ class FrontPage(webapp.RequestHandler):
                 splitted = var1.split(" ")
                 z = len(var1.split(" "))
                 if z == 1:
-                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '&rpp=10&include_entities=true&result_type=mixed&lang=en'
+                    # url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '&rpp=80&include_entities=true&result_type=mixed&lang=en'
+                      url = 'http://www.reddit.com/search.json?q=' + splitted[0] + '&count=20'
+                      print "here it is: " + url
+                # elif z == 2:
+                #     url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '%20' + splitted[1] + '&rpp=80&include_entities=true&result_type=mixed&lang=en'                 
 
-                elif z == 2:
-                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '%20' + splitted[1] + '&rpp=10&include_entities=true&result_type=mixed&lang=en'                 
-
-                else:
-                    url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '%20' + splitted[1] + '%20' + splitted[2] + '&rpp=10&include_entities=true&result_type=mixed&lang=en' 
+                # else:
+                #     url = 'http://search.twitter.com/search.json?q=' + splitted[0] + '%20' + splitted[1] + '%20' + splitted[2] + '&rpp=80&include_entities=true&result_type=mixed&lang=en' 
 
             textile = ""
             dd = ""
@@ -362,22 +378,41 @@ class FrontPage(webapp.RequestHandler):
             req = urlFun(self,url)
 
             textile = str(req.read())
-            results = textile.index('[')
-            meat = textile[results:len(textile)]
-            chunks = meat.split('"created_at"')
 
-            allTweets = []
-            for chunk in chunks:
-                if "text" in chunk:
-                    tweets = chunk.split('},{')
-                    for tweet in tweets:
-                        allTweets.append(tweet)
+            # results = textile.index('[')
+            # meat = textile[results:len(textile)]
+            # value = ""
 
+            # try:
+            #     unicode(textile, "ascii")
+            # except UnicodeError:
+            #     value = unicode(textile, "utf-8")
+            # else:
+            #     # value was valid ASCII data
+            #     pass
+
+            jsonTextile = json.loads(textile)
             cleanTweets = []
-            for tweet in allTweets:
-                subStrBeg = tweet.find('","text":')
-                if subStrBeg != -1:
-                    cleanTweets.append(tweet[subStrBeg+10:])
+
+            kids = jsonTextile.get('data').get('children')
+
+            for item in kids:
+                st = item.get('data').get('selftext')
+                cleanTweets.append(st.encode('utf8'))
+
+            # allTweets = []
+            # for chunk in chunks:
+            #     if "text" in chunk:
+            #         tweets = chunk.split('},{')
+            #         for tweet in tweets:
+            #             allTweets.append(tweet)
+
+            # cleanTweets = []
+            # for tweet in allTweets:
+            #     subStrBeg = tweet.find('","text":')
+            #     if subStrBeg != -1:
+            #         cleanTweets.append(tweet[subStrBeg+10:])
+
 
             atSignList = collections.defaultdict(int)
             hashTagList = collections.defaultdict(int)
@@ -635,7 +670,7 @@ class FrontPage(webapp.RequestHandler):
             #oovList
             sortedList = sorted(oovList.items(), key=itemgetter(1))
             last5 = sortedList[-5:]
-            last5.reverse()
+            last5.reverse() 
 
             htmlc = htmlc + '<div id="top">'
             htmlc = htmlc + "<p>Active Learning / Domain Adaptation<br>"
@@ -663,9 +698,15 @@ class FrontPage(webapp.RequestHandler):
 
             htmlc = htmlc + '<div id="wrapper">'
 
+            aTag = Tag(auto_id=False)
+
             #have been trying empty string & / for action
             htmlc = htmlc + '<form method="POST" action="/">'
-            htmlc = htmlc + '<p>' + str(Tag(auto_id=False))
+            htmlc = htmlc + '<p>' +  str(aTag.newTag1)
+            htmlc = htmlc + '<p>' +  str(aTag.newTag2)
+            htmlc = htmlc + '<p>' +  str(aTag.newTag3)
+            htmlc = htmlc + '<p>' +  str(aTag.newTag4)
+            htmlc = htmlc + '<p>' +  str(aTag.newTag5)
             htmlc = htmlc + '<input type="submit" name="Submit" value="Submit"></p>'
             htmlc = htmlc + '</form><br>'
             htmlc = htmlc + "PERCENTAGE IN VOCABULARY:"
@@ -706,8 +747,8 @@ class FrontPage(webapp.RequestHandler):
             htmlc = htmlc + '<div id="lexicon">'
             htmlc = htmlc + "<p>"+ str(page.which_user) + "'s Lexicon</p><br><p>"
 
-#            qqq = db.GqlQuery("SELECT * FROM Pair")
-#            results = qqq.fetch(50)
+            # qqq = db.GqlQuery("SELECT * FROM Pair")
+            # results = qqq.fetch(50)
 
             for result in results:
 
@@ -723,6 +764,8 @@ class FrontPage(webapp.RequestHandler):
         #else:
         elif self.request.get('textBox1') == "" and len(testResults) > 0:
             page = tweetDB.Tag()
+
+            import pdb; pdb.set_trace()
 
             page.newTag1 = self.request.get('newTag1')
             page.newTag2 = self.request.get('newTag2')
@@ -740,6 +783,16 @@ class FrontPage(webapp.RequestHandler):
                 searchString = resultX.textBox1
                 user = resultX.which_user
 
+            tag1 = ""
+            tag2 = ""
+            tag3 = ""
+            tag4 = ""
+            tag5 = ""
+            word1 = ""
+            word2 = ""
+            word3 = ""
+            word4 = ""
+            word5 = ""
             qq = db.GqlQuery("SELECT * FROM Tag")
             results = qq.fetch(1)
             for result in results:
@@ -853,7 +906,7 @@ class FrontPage(webapp.RequestHandler):
             
 #~~~~~~~~~NEWNEW~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         
-class ResultsPage(webapp.RequestHandler):    
+class ResultsPage(webapp2.RequestHandler):    
     def get(self):
 
         htmlr = '<html><head><title>Results</title></head><body>'
@@ -864,7 +917,7 @@ class ResultsPage(webapp.RequestHandler):
 
         #-END-NLP--------------------------------------------------------------------
 
-class ClearPage(webapp.RequestHandler):    
+class ClearPage(webapp2.RequestHandler):    
     def get(self):
 
         htmlr = '<html><head><title>Clear</title></head><body>'
@@ -873,10 +926,12 @@ class ClearPage(webapp.RequestHandler):
 
         self.response.out.write(htmlr)
 
-application = webapp.WSGIApplication([('/', FrontPage),('/results',ResultsPage),('/clear',ClearPage)],debug=True)
+# application = webapp.WSGIApplication([('/', FrontPage),('/results',ResultsPage),('/clear',ClearPage)],debug=True)
 
-def main():
-    util.run_wsgi_app(application)
+app = webapp2.WSGIApplication([('/', FrontPage),('/results',ResultsPage),('/clear',ClearPage)],debug=True)
 
-if __name__ == '__main__':
-    main()
+# def main():
+#     util.run_wsgi_app(application)
+
+# if __name__ == '__main__':
+#     main()

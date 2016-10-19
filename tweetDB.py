@@ -5,28 +5,28 @@ class Hack(db.Model):
     which_user = db.UserProperty()
 
 class Tag(db.Model):
-    newTag1 = db.StringProperty()
-    newTag2 = db.StringProperty()
-    newTag3 = db.StringProperty()
-    newTag4 = db.StringProperty()
-    newTag5 = db.StringProperty()
+    newTag1 = db.StringProperty(multiline=True)
+    newTag2 = db.StringProperty(multiline=True)
+    newTag3 = db.StringProperty(multiline=True)
+    newTag4 = db.StringProperty(multiline=True)
+    newTag5 = db.StringProperty(multiline=True)
     which_user = db.UserProperty()
 
 class NewWord(db.Model):
     name = db.StringProperty()
-    one = db.StringProperty()
-    two = db.StringProperty()
-    three = db.StringProperty()
-    four = db.StringProperty()
-    five = db.StringProperty()
-    score = db.StringProperty()
+    one = db.StringProperty(multiline=True)
+    two = db.StringProperty(multiline=True)
+    three = db.StringProperty(multiline=True)
+    four = db.StringProperty(multiline=True)
+    five = db.StringProperty(multiline=True)
+    score = db.StringProperty(multiline=True)
 
 class Pair(db.Model):
-    word = db.StringProperty()
-    tag = db.StringProperty()
+    word = db.StringProperty(multiline=True)
+    tag = db.StringProperty(multiline=True)
     which_user = db.UserProperty()
 
 class Record(db.Model):
-    score = db.StringProperty()
-    word = db.StringProperty()
+    score = db.StringProperty(multiline=True)
+    word = db.StringProperty(multiline=True)
     which_user = db.UserProperty()    
